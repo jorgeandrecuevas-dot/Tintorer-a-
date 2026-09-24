@@ -1,0 +1,40 @@
+/* Estilos propios. Todo lo demás lo resuelve Bootstrap. */
+
+body {
+  background: #f7f8fa;
+}
+
+/* El menú fijo de la versión de computadora */
+.barra-lateral {
+  width: 200px;
+  min-height: 100vh;
+}
+
+/* Sin esto, el contenido ancho (la galería) empuja al menú fuera de la pantalla */
+.min-w-0 {
+  min-width: 0;
+}
+
+/* Todas las miniaturas miden lo mismo aunque las fotos vengan de distinto tamaño */
+.foto-prenda {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+/* Lo que se muestra cuando la dirección de la imagen no carga */
+.foto-fallida {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: .5rem;
+  font-size: .8rem;
+  line-height: 1.25;
+  color: #842029;
+  background: #f8d7da;
+  border: 1px solid #f1aeb5;
+  border-radius: .375rem;
+}
