@@ -78,7 +78,10 @@
               <div class="form-text">Lo escribe él: el negocio ya trae su propia numeración.</div>
 
               <label for="nombreCliente" class="form-label fw-semibold mt-3">Cliente</label>
-              <input type="text" id="nombreCliente" class="form-control" placeholder="Nombre">
+              <input type="text" id="nombreCliente" class="form-control" placeholder="Nombre"
+                     autocomplete="off" aria-controls="clientesAntes">
+              <!-- La señora que viene cada semana no se vuelve a teclear -->
+              <div id="clientesAntes" class="list-group mt-1 d-none" role="list"></div>
 
               <label for="telCliente" class="form-label fw-semibold mt-3">Teléfono</label>
               <input type="tel" id="telCliente" class="form-control" placeholder="33 0000 0000">
@@ -272,7 +275,31 @@
       <p class="text-secondary">Cada nota avanza por cinco etapas. El estatus dice
         dónde está la ropa: en el mostrador, con la maquila o lista para entregar.</p>
 
+      <!-- Son 90 notas al mes. Llega el cliente con su ticket y recorrer cinco
+           columnas con el dedo tarda más que escribir el número. -->
+      <div class="row g-2 align-items-center mb-3" id="filaBuscarNota">
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="input-group">
+            <span class="input-group-text" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="7" cy="7" r="5"/><path d="M11 11l4 4" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <input type="search" id="buscarNota" class="form-control"
+                   placeholder="Buscar por número o cliente" autocomplete="off"
+                   aria-label="Buscar una nota" aria-controls="columnas">
+          </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-8">
+          <span class="small text-secondary" id="cuentaBusqueda"></span>
+        </div>
+      </div>
+
       <div class="row row-cols-1 row-cols-md-3 row-cols-xl-5 g-3" id="columnas"></div>
+
+      <div class="text-center text-secondary py-5 d-none" id="sinResultadosNota">
+        <p class="mb-0">Ninguna nota dice así.</p>
+      </div>
 
       <div class="text-center text-secondary py-5 d-none" id="tableroVacio">
         <p class="mb-2">Todavía no hay notas.</p>
@@ -381,6 +408,24 @@
         <strong>Revisar:</strong> la sábana de una pieza se cobra en $70 y la maquila
         cobra $100 por lavarla. Es la única de las 56 piezas del catálogo que se
         vende por debajo de lo que cuesta.
+      </div>
+
+      <!-- Todo vive en esta tablet. Si se pierde, se pierde la libreta del
+           negocio. El respaldo es lo único que lo evita. -->
+      <div class="card mt-3">
+        <div class="card-body">
+          <h2 class="h6">Respaldo</h2>
+          <p class="small text-secondary mb-2">
+            Baja un archivo con todas las notas y sus fotos. Guárdalo en otro
+            lado. Si la tablet se pierde, con ese archivo vuelve todo.
+          </p>
+          <div class="d-flex flex-wrap gap-2 align-items-center">
+            <button class="btn btn-primary" id="btnRespaldo">Bajar respaldo</button>
+            <button class="btn btn-outline-secondary" id="btnRestaurar">Restaurar respaldo</button>
+            <input type="file" id="archivoRespaldo" accept="application/json,.json" class="d-none">
+            <span class="small text-secondary" id="avisoRespaldo"></span>
+          </div>
+        </div>
       </div>
 
       <div class="d-flex flex-wrap gap-2 mt-3">

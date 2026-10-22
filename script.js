@@ -376,6 +376,187 @@ function notasDeEjemplo() {
 
 
 /* -------------------------------------------------------------------------
+   4.1 EL ALMACÉN DE IMÁGENES
+
+   Las fotos y las firmas no caben en el almacén chico del navegador. Está
+   medido: una nota con cuatro fotos pesa 1,032 KB y ahí solo entran 5 MB,
+   o sea 4 notas. IndexedDB crece con el disco de la tablet.
+
+   La nota guarda nada más el nombre de cada imagen. La imagen vive aquí.
+   ------------------------------------------------------------------------- */
+
+const BD_NOMBRE = 'tintoreria';
+const BD_TIENDA = 'imagenes';
+let bdAbierta = null;
+
+function abrirBD() {
+  if (bdAbierta) return bdAbierta;
+  bdAbierta = new Promise(function (listo) {
+    if (!window.indexedDB) { listo(null); return; }
+    let peticion;
+    try { peticion = indexedDB.open(BD_NOMBRE, 1); }
+    catch (e) { listo(null); return; }
+    peticion.onupgradeneeded = function () {
+      peticion.result.createObjectStore(BD_TIENDA);
+    };
+    peticion.onsuccess = function () { listo(peticion.result); };
+    peticion.onerror   = function () { listo(null); };
+    peticion.onblocked = function () { listo(null); };
+  });
+  return bdAbierta;
+}
+
+// Las notas viejas traen la imagen adentro, y empiezan con "data:". Por eso
+// se pregunta antes de ir al almacén: así las dos formas conviven.
+function esImagenAdentro(v) {
+  return typeof v === 'string' && v.slice(0, 5) === 'data:';
+}
+
+function nombreImagen() {
+  return 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+// Devuelve el nombre con el que quedó, o null si la tablet no dejó guardarla
+function guardarImagen(dataURL) {
+  if (!dataURL) return Promise.resolve(null);
+  return abrirBD().then(function (bd) {
+    if (!bd) return null;
+    return new Promise(function (listo) {
+      const nombre = nombreImagen();
+      let t;
+      try { t = bd.transaction(BD_TIENDA, 'readwrite'); }
+      catch (e) { listo(null); return; }
+      t.objectStore(BD_TIENDA).put(dataURL, nombre);
+      t.oncomplete = function () { listo(nombre); };
+      t.onerror    = function () { listo(null); };
+      t.onabort    = function () { listo(null); };
+    });
+  });
+}
+
+function leerImagen(nombre) {
+  if (!nombre) return Promise.resolve(null);
+  if (esImagenAdentro(nombre)) return Promise.resolve(nombre);
+  return abrirBD().then(function (bd) {
+    if (!bd) return null;
+    return new Promise(function (listo) {
+      let t;
+      try { t = bd.transaction(BD_TIENDA, 'readonly'); }
+      catch (e) { listo(null); return; }
+      const p = t.objectStore(BD_TIENDA).get(nombre);
+      p.onsuccess = function () { listo(p.result || null); };
+      p.onerror   = function () { listo(null); };
+    });
+  });
+}
+
+// Todas las imágenes de una nota: sus fotos y sus dos firmas
+function imagenesDeNota(n) {
+  return (n.fotos || []).concat([n.firmaRecibido, n.firmaEntrega])
+    .filter(function (x) { return x && !esImagenAdentro(x); });
+}
+
+function borrarImagenes(nombres) {
+  if (!nombres || nombres.length === 0) return Promise.resolve();
+  return abrirBD().then(function (bd) {
+    if (!bd) return;
+    return new Promise(function (listo) {
+      let t;
+      try { t = bd.transaction(BD_TIENDA, 'readwrite'); }
+      catch (e) { listo(); return; }
+      const tienda = t.objectStore(BD_TIENDA);
+      nombres.forEach(function (n) { tienda.delete(n); });
+      t.oncomplete = function () { listo(); };
+      t.onerror    = function () { listo(); };
+      t.onabort    = function () { listo(); };
+    });
+  });
+}
+
+// Todas las imágenes del almacén, para meterlas al respaldo
+function todasLasImagenes() {
+  return abrirBD().then(function (bd) {
+    if (!bd) return [];
+    return new Promise(function (listo) {
+      let t;
+      try { t = bd.transaction(BD_TIENDA, 'readonly'); }
+      catch (e) { listo([]); return; }
+      const tienda = t.objectStore(BD_TIENDA);
+      const nombres = tienda.getAllKeys();
+      const datos   = tienda.getAll();
+      t.oncomplete = function () {
+        listo(nombres.result.map(function (n, i) { return [n, datos.result[i]]; }));
+      };
+      t.onerror = function () { listo([]); };
+      t.onabort = function () { listo([]); };
+    });
+  });
+}
+
+// Mete al almacén las imágenes que vienen de un respaldo
+function meterImagenes(pares) {
+  if (!pares || pares.length === 0) return Promise.resolve(true);
+  return abrirBD().then(function (bd) {
+    if (!bd) return false;
+    return new Promise(function (listo) {
+      let t;
+      try { t = bd.transaction(BD_TIENDA, 'readwrite'); }
+      catch (e) { listo(false); return; }
+      const tienda = t.objectStore(BD_TIENDA);
+      pares.forEach(function (par) { tienda.put(par[1], par[0]); });
+      t.oncomplete = function () { listo(true); };
+      t.onerror    = function () { listo(false); };
+      t.onabort    = function () { listo(false); };
+    });
+  });
+}
+
+function vaciarImagenes() {
+  return abrirBD().then(function (bd) {
+    if (!bd) return;
+    return new Promise(function (listo) {
+      let t;
+      try { t = bd.transaction(BD_TIENDA, 'readwrite'); }
+      catch (e) { listo(); return; }
+      t.objectStore(BD_TIENDA).clear();
+      t.oncomplete = function () { listo(); };
+      t.onerror    = function () { listo(); };
+      t.onabort    = function () { listo(); };
+    });
+  });
+}
+
+// Las notas guardadas con la versión anterior traen las imágenes adentro. Se
+// mudan una sola vez, la primera vez que abre esta versión.
+function mudarImagenesViejas() {
+  const pendientes = [];
+  NOTAS.forEach(function (n) {
+    (n.fotos || []).forEach(function (f, i) {
+      if (esImagenAdentro(f)) pendientes.push({ nota: n, campo: 'fotos', i: i, dato: f });
+    });
+    ['firmaRecibido', 'firmaEntrega'].forEach(function (c) {
+      if (esImagenAdentro(n[c])) pendientes.push({ nota: n, campo: c, dato: n[c] });
+    });
+  });
+  if (pendientes.length === 0) return Promise.resolve(0);
+
+  return Promise.all(pendientes.map(function (p) {
+    return guardarImagen(p.dato).then(function (nombre) {
+      if (!nombre) return false;
+      if (p.campo === 'fotos') p.nota.fotos[p.i] = nombre;
+      else p.nota[p.campo] = nombre;
+      return true;
+    });
+  })).then(function (hechas) {
+    escribirNotas(NOTAS);
+    return hechas.filter(Boolean).length;
+  });
+}
+
+mudarImagenesViejas();
+
+
+/* -------------------------------------------------------------------------
    5. CAPTURA DE LA NOTA
    ------------------------------------------------------------------------- */
 
@@ -417,6 +598,82 @@ function renglonResumen(texto, monto) {
 inpCliente.addEventListener('input', function () {
   resumenCliente.textContent = inpCliente.value.trim() || 'Sin nombre';
 });
+
+/* Los clientes que ya vinieron.
+
+   La señora que trae ropa cada semana se tecleaba de cero cada semana, con
+   su teléfono. Se arma la lista de las notas guardadas y se sugiere al
+   escribir. Se queda el teléfono más reciente de cada quien. */
+
+const cajaClientes = document.getElementById('clientesAntes');
+
+function clientesDeAntes() {
+  const vistos = {};
+  const lista = [];
+  // NOTAS viene de la más nueva a la más vieja, así que el primer teléfono
+  // que aparece es el último que dejó
+  NOTAS.forEach(function (n) {
+    const nombre = (n.cliente || '').trim();
+    if (nombre === '' || nombre === 'Sin nombre') return;
+    const llave = sinAcentos(nombre);
+    if (vistos[llave]) return;
+    vistos[llave] = true;
+    lista.push({ nombre: nombre, telefono: n.telefono || '' });
+  });
+  return lista;
+}
+
+function dibujarClientes() {
+  const busca = sinAcentos(inpCliente.value.trim());
+  cajaClientes.innerHTML = '';
+
+  // Con una letra sale medio pueblo. A partir de dos ya sirve.
+  if (busca.length < 2) { cajaClientes.classList.add('d-none'); return; }
+
+  const hallados = clientesDeAntes().filter(function (c) {
+    return sinAcentos(c.nombre).indexOf(busca) !== -1 &&
+           sinAcentos(c.nombre) !== busca;
+  }).slice(0, 5);
+
+  if (hallados.length === 0) { cajaClientes.classList.add('d-none'); return; }
+
+  hallados.forEach(function (c) {
+    const fila = document.createElement('button');
+    fila.type = 'button';
+    fila.className = 'list-group-item list-group-item-action py-1';
+    fila.setAttribute('role', 'listitem');
+
+    const nombre = document.createElement('span');
+    nombre.textContent = c.nombre;
+    fila.appendChild(nombre);
+
+    if (c.telefono) {
+      const tel = document.createElement('span');
+      tel.className = 'small text-secondary ms-2';
+      tel.textContent = c.telefono;
+      fila.appendChild(tel);
+    }
+
+    fila.addEventListener('click', function () {
+      inpCliente.value = c.nombre;
+      document.getElementById('telCliente').value = c.telefono;
+      cajaClientes.classList.add('d-none');
+      resumenCliente.textContent = c.nombre;
+      inpCantidad.focus();
+    });
+    cajaClientes.appendChild(fila);
+  });
+  cajaClientes.classList.remove('d-none');
+}
+
+inpCliente.addEventListener('input', dibujarClientes);
+
+// Al salir del campo la lista estorba. El retraso deja que el toque en una
+// sugerencia alcance a registrarse antes de que se esconda.
+inpCliente.addEventListener('blur', function () {
+  setTimeout(function () { cajaClientes.classList.add('d-none'); }, 200);
+});
+
 
 /* El buscador de prendas.
 
@@ -702,12 +959,34 @@ function avisar(texto) {
   bootstrap.Toast.getOrCreateInstance(document.getElementById('avisoGuardado')).show();
 }
 
+// Guardar tarda lo que tarde el almacén de imágenes. Dos toques seguidos
+// levantarían la nota dos veces.
+let guardando = false;
+
 document.getElementById('btnGuardar').addEventListener('click', function () {
+  if (guardando) return;
+
   const folio = inpFolio.value.trim();
   if (folio === '') { inpFolio.focus(); avisar('Falta el número de nota.'); return; }
 
   const c = cuentaNota();
   if (c.piezas === 0) { avisar('La nota no tiene prendas.'); return; }
+
+  guardando = true;
+  const porGuardar = [firmaRecibido.imagen()].concat(fotos);
+  Promise.all(porGuardar.map(function (img) { return guardarImagen(img); }))
+    .then(function (nombres) {
+      guardando = false;
+      terminarDeGuardar(folio, c, nombres[0], nombres.slice(1));
+    });
+});
+
+function terminarDeGuardar(folio, c, firma, fotosGuardadas) {
+  // Si el almacén no abrió, la nota se guarda sin imágenes. Perder la nota
+  // sería peor, pero el mostrador tiene que enterarse.
+  const seFueronFotos = fotosGuardadas.filter(Boolean);
+  const faltaron = (fotos.length - seFueronFotos.length) +
+                   (firmaRecibido.imagen() && !firma ? 1 : 0);
 
   NOTAS.unshift(conId({
     folio: folio,
@@ -721,8 +1000,8 @@ document.getElementById('btnGuardar').addEventListener('click', function () {
     observaciones: inpObserva.value.trim(),
     detalle: c.renglones.map(function (r) { return r.texto; }).join(' · '),
     entrega: textoFecha(c.entrega),
-    firmaRecibido: firmaRecibido.imagen(),
-    fotos: fotos.slice(),
+    firmaRecibido: firma,
+    fotos: seFueronFotos,
     estatus: 'recibida'
   }));
 
@@ -730,7 +1009,8 @@ document.getElementById('btnGuardar').addEventListener('click', function () {
     // Si no se guardó, tampoco se queda en memoria: si no, el tablero
     // enseñaría una nota que al recargar ya no está.
     NOTAS.shift();
-    avisar('No se pudo guardar: ya no cabe en la tablet. Hay que descargar las notas viejas.');
+    borrarImagenes(seFueronFotos.concat(firma ? [firma] : []));
+    avisar('No se pudo guardar: ya no cabe en la tablet. Hay que bajar un respaldo y borrar notas viejas.');
     return;
   }
 
@@ -749,9 +1029,11 @@ document.getElementById('btnGuardar').addEventListener('click', function () {
   marcarAtajo();
   dibujarNota();
 
-  avisar('Nota ' + folio + ' guardada.');
+  avisar(faltaron === 0
+    ? 'Nota ' + folio + ' guardada.'
+    : 'Nota ' + folio + ' guardada, pero sin sus imágenes: la tablet no dejó abrir el almacén.');
   irA('tablero');
-});
+}
 
 
 /* -------------------------------------------------------------------------
@@ -814,17 +1096,47 @@ function tarjetaNota(n) {
   return li;
 }
 
+// Lo que el mostrador tiene escrito en el buscador del tablero
+let loQueBusca = '';
+
+// Busca por número de nota o por cliente. Sin pedir acentos: en la tablet
+// nadie va a escribir "Díaz" con tilde.
+function notaCoincide(n, texto) {
+  if (texto === '') return true;
+  return sinAcentos(n.folio + ' ' + n.cliente).indexOf(texto) !== -1;
+}
+
 function dibujarTablero() {
   const cajon = document.getElementById('columnas');
   cajon.innerHTML = '';
 
   const vacio = NOTAS.length === 0;
   document.getElementById('tableroVacio').classList.toggle('d-none', !vacio);
+  document.getElementById('filaBuscarNota').classList.toggle('d-none', vacio);
   cajon.classList.toggle('d-none', vacio);
-  if (vacio) return;
+  document.getElementById('sinResultadosNota').classList.add('d-none');
+  if (vacio) { document.getElementById('cuentaBusqueda').textContent = ''; return; }
+
+  const buscado = sinAcentos(loQueBusca.trim());
+  const halladas = NOTAS.filter(function (n) { return notaCoincide(n, buscado); });
+
+  const letrero = document.getElementById('cuentaBusqueda');
+  if (buscado === '') {
+    letrero.textContent = '';
+  } else {
+    letrero.textContent = halladas.length === 1
+      ? '1 nota de ' + NOTAS.length
+      : halladas.length + ' notas de ' + NOTAS.length;
+  }
+
+  if (halladas.length === 0) {
+    cajon.classList.add('d-none');
+    document.getElementById('sinResultadosNota').classList.remove('d-none');
+    return;
+  }
 
   ETAPAS.forEach(function (etapa) {
-    const deEsta = NOTAS.filter(function (n) { return n.estatus === etapa.id; });
+    const deEsta = halladas.filter(function (n) { return n.estatus === etapa.id; });
 
     const col = document.createElement('div');
     col.className = 'col';
@@ -855,6 +1167,12 @@ function dibujarTablero() {
 }
 
 
+document.getElementById('buscarNota').addEventListener('input', function (evento) {
+  loQueBusca = evento.target.value;
+  dibujarTablero();
+});
+
+
 /* -------------------------------------------------------------------------
    8.1 VER Y CORREGIR UNA NOTA
 
@@ -874,15 +1192,25 @@ ETAPAS.forEach(function (e) {
   selEstatus.appendChild(opcion);
 });
 
-function miniatura(src, alto) {
+// Recibe el nombre de la imagen, no la imagen. Va al almacén por ella y la
+// pone cuando llega.
+function miniatura(nombre, alto) {
   const col = document.createElement('div');
   col.className = 'col';
   const img = document.createElement('img');
-  img.src = src;
   img.alt = '';
   img.className = 'img-fluid rounded border';
   if (alto) img.style.background = '#fff';
   col.appendChild(img);
+
+  leerImagen(nombre).then(function (src) {
+    if (src) { img.src = src; return; }
+    const hueco = document.createElement('div');
+    hueco.className = 'foto-fallida';
+    hueco.textContent = 'No se encontró esta imagen';
+    col.innerHTML = '';
+    col.appendChild(hueco);
+  });
   return col;
 }
 
@@ -976,6 +1304,7 @@ document.getElementById('btnBorrarNota').addEventListener('click', function () {
     ' de ' + notaAbierta.cliente + '.\n\nEsto no se puede deshacer. ¿Seguro?');
   if (!seguro) return;
 
+  borrarImagenes(imagenesDeNota(notaAbierta));
   NOTAS = NOTAS.filter(function (n) { return n.id !== notaAbierta.id; });
   escribirNotas(NOTAS);
   bootstrap.Modal.getOrCreateInstance(cuadroNota).hide();
@@ -1022,15 +1351,20 @@ document.getElementById('btnConfirmarEntrega').addEventListener('click', functio
     return;
   }
 
-  notaEnEntrega.firmaEntrega = firmaEntrega.imagen();
-  notaEnEntrega.pagado = notaEnEntrega.total;    // al recoger se liquida
-  notaEnEntrega.saldo = 0;
-  notaEnEntrega.estatus = 'entregada';
-  escribirNotas(NOTAS);
+  const nota = notaEnEntrega;
+  guardarImagen(firmaEntrega.imagen()).then(function (nombre) {
+    nota.firmaEntrega = nombre;
+    nota.pagado = nota.total;        // al recoger se liquida
+    nota.saldo = 0;
+    nota.estatus = 'entregada';
+    escribirNotas(NOTAS);
 
-  bootstrap.Modal.getOrCreateInstance(cuadroEntrega).hide();
-  dibujarTablero();
-  avisar('Nota ' + notaEnEntrega.folio + ' entregada.');
+    bootstrap.Modal.getOrCreateInstance(cuadroEntrega).hide();
+    dibujarTablero();
+    avisar(nombre
+      ? 'Nota ' + nota.folio + ' entregada.'
+      : 'Nota ' + nota.folio + ' entregada, pero la firma no se guardó.');
+  });
   notaEnEntrega = null;
 });
 
@@ -1549,6 +1883,117 @@ document.getElementById('btnBorrarTodo').addEventListener('click', function () {
 
   NOTAS = [];
   escribirNotas(NOTAS);
+  vaciarImagenes();
   dibujarCorte();
   avisar('Listo, la tablet quedó en cero.');
+});
+
+
+/* -------------------------------------------------------------------------
+   14. EL RESPALDO
+
+   Todo vive en una tablet. Se moja, se cae o alguien le borra los datos del
+   navegador y se va la libreta completa del negocio. El archivo que baja de
+   aquí es lo único que lo evita.
+
+   Trae las notas y sus imágenes. Se arma por pedazos y no como un solo texto
+   gigante, porque con cientos de fotos adentro eso no cabe en memoria.
+   ------------------------------------------------------------------------- */
+
+const RESPALDO_VERSION = 1;
+const letreroRespaldo = document.getElementById('avisoRespaldo');
+
+function nombreDeArchivo() {
+  const d = new Date();
+  const dos = function (x) { return String(x).padStart(2, '0'); };
+  return 'respaldo-tintoreria-' + d.getFullYear() + '-' +
+         dos(d.getMonth() + 1) + '-' + dos(d.getDate()) + '.json';
+}
+
+document.getElementById('btnRespaldo').addEventListener('click', function () {
+  if (NOTAS.length === 0) { avisar('No hay notas que respaldar.'); return; }
+
+  letreroRespaldo.textContent = 'Armando el respaldo…';
+  todasLasImagenes().then(function (pares) {
+    const pedazos = ['{"version":' + RESPALDO_VERSION +
+                     ',"fecha":' + JSON.stringify(new Date().toISOString()) +
+                     ',"notas":' + JSON.stringify(NOTAS) +
+                     ',"imagenes":{'];
+    pares.forEach(function (par, i) {
+      pedazos.push((i ? ',' : '') + JSON.stringify(par[0]) + ':' + JSON.stringify(par[1]));
+    });
+    pedazos.push('}}');
+
+    const archivo = new Blob(pedazos, { type: 'application/json' });
+    const liga = document.createElement('a');
+    liga.href = URL.createObjectURL(archivo);
+    liga.download = nombreDeArchivo();
+    document.body.appendChild(liga);
+    liga.click();
+    document.body.removeChild(liga);
+    setTimeout(function () { URL.revokeObjectURL(liga.href); }, 60000);
+
+    // Un respaldo chico marcaba "0.0 MB", que se lee como que no bajó nada
+    const peso = archivo.size >= 1048576
+      ? (archivo.size / 1048576).toFixed(1) + ' MB'
+      : Math.max(1, Math.round(archivo.size / 1024)) + ' KB';
+    letreroRespaldo.textContent = NOTAS.length + ' notas y ' + pares.length +
+                                  ' imágenes · ' + peso;
+    avisar('Respaldo listo. Guárdalo fuera de la tablet.');
+  });
+});
+
+document.getElementById('btnRestaurar').addEventListener('click', function () {
+  document.getElementById('archivoRespaldo').click();
+});
+
+document.getElementById('archivoRespaldo').addEventListener('change', function (evento) {
+  const archivo = evento.target.files[0];
+  if (!archivo) return;
+  evento.target.value = '';                  // para poder escoger el mismo otra vez
+
+  letreroRespaldo.textContent = 'Leyendo el archivo…';
+  archivo.text().then(function (texto) {
+    let datos;
+    try { datos = JSON.parse(texto); }
+    catch (e) { datos = null; }
+
+    if (!datos || !Array.isArray(datos.notas)) {
+      letreroRespaldo.textContent = '';
+      avisar('Ese archivo no es un respaldo de la aplicación.');
+      return;
+    }
+
+    // Restaurar borra lo que haya. Hay que preguntar.
+    const seguro = window.confirm(
+      'El respaldo trae ' + datos.notas.length + ' notas.\n\n' +
+      'Se van a reemplazar las ' + NOTAS.length + ' que hay en esta tablet. ' +
+      'Esto no se puede deshacer. ¿Seguro?');
+    if (!seguro) { letreroRespaldo.textContent = ''; return; }
+
+    const pares = Object.keys(datos.imagenes || {}).map(function (n) {
+      return [n, datos.imagenes[n]];
+    });
+
+    vaciarImagenes()
+      .then(function () { return meterImagenes(pares); })
+      .then(function (entraron) {
+        NOTAS = datos.notas.map(conId);
+        const cupo = escribirNotas(NOTAS);
+
+        dibujarTablero();
+        dibujarMaquila();
+        dibujarCorte();
+
+        if (!cupo) {
+          letreroRespaldo.textContent = '';
+          avisar('Las notas no cupieron en la tablet. El respaldo quedó sin restaurar.');
+          return;
+        }
+        letreroRespaldo.textContent = NOTAS.length + ' notas restauradas';
+        avisar(entraron
+          ? 'Listo, volvieron ' + NOTAS.length + ' notas.'
+          : 'Volvieron ' + NOTAS.length + ' notas, pero sin las fotos.');
+      });
+  });
 });

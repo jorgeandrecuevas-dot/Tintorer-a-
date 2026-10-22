@@ -3,6 +3,9 @@
 Revisión del 22 de octubre. Compara los 23 apuntes de `APUNTES.md` contra lo
 que la aplicación hace hoy.
 
+**Ya se hizo el camino A.** Los puntos 1, 2, 3 y 5 de «Lo que hace falta»
+quedaron resueltos. Lo que sigue abajo con un ✓ ya está.
+
 ## Los 23 puntos, uno por uno
 
 De 23 apuntes hay **17 hechos, 5 a medias y 1 sin hacer.**
@@ -35,38 +38,30 @@ De 23 apuntes hay **17 hechos, 5 a medias y 1 sin hacer.**
 
 ## Lo que hace falta, por riesgo
 
-### 1. Las fotos llenan la tablet a la quinta nota
+### 1. Las fotos llenan la tablet a la quinta nota ✓
 
-Está medido en Chrome, no es cálculo:
+Las imágenes se fueron a IndexedDB. Una nota pasó de 1,032 KB a 331 bytes en
+el almacén chico. Probadas 4,000 notas sin que truene, contra las 4 de antes.
 
-| | |
-|---|---|
-| Una foto achicada a 1000 px | 252 KB |
-| Una nota con cuatro fotos y su firma | 1,032 KB |
-| Notas que caben antes de tronar | **4** |
+### 2. No hay respaldo ✓
 
-El almacén del navegador son 5 MB y no sube. Esto tumba la aplicación el
-primer día de uso real. Las fotos van a IndexedDB, que sí crece con el disco.
+En Corte hay botón para bajar un archivo con todas las notas y sus imágenes,
+y otro para restaurarlo.
 
-### 2. No hay respaldo
+### 3. No se busca una nota ✓
 
-Todo vive en una tablet. Se moja, se cae o alguien le borra los datos del
-navegador y se va la libreta completa del negocio.
-
-### 3. No se busca una nota
-
-Son 90 notas al mes. Llega el cliente con su ticket y hay que recorrer cinco
-columnas con el dedo. Falta escribir el número o el nombre y que salga.
+El tablero tiene buscador por número de nota o por cliente, sin pedir
+acentos.
 
 ### 4. El teléfono se captura y no sirve de nada
 
 Se guarda y ahí se queda. Con la ropa embolsada el jueves a mediodía, un
 mensaje al cliente vacía el mostrador más rápido.
 
-### 5. El cliente se vuelve a teclear cada vez
+### 5. El cliente se vuelve a teclear cada vez ✓
 
-No hay historial. La señora que viene cada semana se escribe de cero cada
-semana, con su teléfono.
+Al escribir dos letras del nombre salen los clientes que ya vinieron, con su
+teléfono. Se toca uno y se llenan los dos campos.
 
 ### 6. Dos sucursales no se hablan
 
@@ -89,13 +84,13 @@ que nadie recogió.
 
 ## Tres caminos
 
-### A. Aguantar en la tablet
+### A. Aguantar en la tablet ✓ hecho
 
-Una semana. Fotos a IndexedDB, botón de respaldo a un archivo, buscador de
-notas e historial de clientes. Sin servidor.
+Fotos a IndexedDB, botón de respaldo a un archivo, buscador de notas e
+historial de clientes. Sin servidor.
 
-Arregla los puntos 1 al 5. Sigue sin resolver dos sucursales. Es lo que
-evita que truene y es lo más barato.
+Arregló los puntos 1, 2, 3 y 5. Siguen pendientes el aviso al cliente, las
+dos sucursales y la merma.
 
 ### B. Supabase atrás
 
@@ -114,12 +109,12 @@ a Vercel y Supabase va atrás. Se instala como aplicación en la tablet.
 Deja un producto que le puedes vender a más de una tintorería: PDF de verdad,
 usuarios por sucursal, precios editables sin tocar código. Es el más caro.
 
-## Qué haría yo
+## Qué sigue
 
-**A esta semana**, pase lo que pase. El punto 1 tumba la aplicación en frío y
-no depende de ninguna decisión del dueño.
+**A ya está.** La aplicación aguanta trabajando en el mostrador.
 
-**B después**, cuando confirme cuántas sucursales son. Es la pregunta 4 de
-`APUNTES.md` y cambia si B vale la pena o no.
+**B, cuando el dueño confirme cuántas sucursales son.** Es la pregunta 4 de
+`APUNTES.md` y decide si B vale la pena o no. Mientras usen una tablet, B no
+compra nada que A no haya dado.
 
 **C solo si lo vas a vender a más de un negocio.**

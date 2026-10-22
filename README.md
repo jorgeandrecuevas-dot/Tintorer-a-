@@ -28,6 +28,9 @@ Se navega con el menú. En computadora es una barra lateral fija; abajo de
 ![Nota nueva](capturas/nota.png)
 
 - **El número de nota se escribe a mano.** El negocio ya trae su numeración.
+- **Los clientes que ya vinieron se sugieren.** Escribes dos letras del
+  nombre y sale, con su teléfono. Tocas uno y se llenan los dos campos. La
+  señora que viene cada semana ya no se teclea cada semana.
 - La cantidad va primero y en grande, con botones de más y menos para
   capturar de pie. Para la maquila pesa más cuántas prendas van que de qué
   tipo son.
@@ -37,9 +40,9 @@ Se navega con el menú. En computadora es una barra lateral fija; abajo de
 - **Observaciones** de cómo llegó la prenda: botón que falta, rotura. Es lo
   que se reclama después.
 - **Foto con la cámara**, que es como se toma en el mostrador. La foto se
-  achica a 1000 píxeles antes de guardarla, porque una foto de tablet pesa
-  varios megas y el almacén del navegador no aguanta ni tres notas así. El
-  campo para pegar una dirección sigue ahí: es el requisito de la Actividad 1.
+  achica a 1000 píxeles y se guarda en IndexedDB, no en el almacén chico del
+  navegador. El campo para pegar una dirección sigue ahí: es el requisito de
+  la Actividad 1.
 - **Firma del cliente** en la pantalla. No usa red ni biblioteca, y aguanta
   que giren la tablet.
 - **El cobro se escribe.** Hay tres atajos (nada, mitad, todo) y abajo el
@@ -55,6 +58,10 @@ Se navega con el menú. En computadora es una barra lateral fija; abajo de
 Cinco etapas: recibida, en maquila, de vuelta, embolsada y entregada. Las
 notas con saldo traen su marca, las observaciones se ven desde aquí, y lo
 que no regresó completo de la maquila sale marcado en rojo.
+
+**Se busca por número o por cliente.** Escribes «0502» o «sofia» y sale, sin
+pedir acentos. Con 90 notas al mes recorrer cinco columnas con el dedo tarda
+más que teclear.
 
 **Toca una nota y se abre.** Ahí se corrige el número, el cliente, el
 teléfono, las observaciones, la etapa y lo recibido. Se ven sus fotos y sus
@@ -128,7 +135,7 @@ computadora. Lo hacen tres clases de Bootstrap,
 |---|---|
 | `index.html` | Las cuatro pantallas, el cuadro de entrega y el menú |
 | `styles.css` | El menú lateral, las miniaturas, las firmas y las hojas que se imprimen |
-| `script.js` | Navegación, ciclo de la maquila, catálogo, cobro, firmas, conteo y documentos |
+| `script.js` | Navegación, ciclo de la maquila, catálogo, cobro, firmas, conteo, documentos, almacén de imágenes y respaldo |
 | `sw.js` | Guarda la aplicación en la tablet para que abra sin señal |
 | `manifest.webmanifest` | Para instalarla como aplicación en la tablet |
 | `vendor/` | Bootstrap, dentro del proyecto y no desde internet |
@@ -177,42 +184,49 @@ La sábana de una pieza se cobra en $70 y la maquila cobra $100 por lavarla.
 Es la única de las 56 que se vende por debajo de lo que cuesta, y está
 pendiente de confirmar con el dueño.
 
+## Dónde vive cada cosa
+
+Las imágenes salieron del almacén chico del navegador. Antes una nota con
+cuatro fotos pesaba 1,032 KB ahí dentro y solo cabían 4 notas. Ahora:
+
+| | Dónde | Cuánto pesa |
+|---|---|---|
+| Los datos de la nota | localStorage | 331 bytes |
+| Las fotos y las firmas | IndexedDB | lo que aguante el disco |
+
+Probadas 4,000 notas sin que truene, contra las 4 de antes. Las notas
+guardadas con la versión anterior se mudan solas la primera vez que abre.
+
+## El respaldo
+
+En **Corte** hay dos botones. **Bajar respaldo** saca un archivo con todas
+las notas y sus imágenes. **Restaurar respaldo** lo vuelve a meter, en esta
+tablet o en otra.
+
+Es lo único que salva al negocio si la tablet se pierde, se moja o alguien le
+borra los datos del navegador. Hay que bajarlo seguido y guardarlo fuera.
+
 ## Pendientes
 
-### 1. Las fotos llenan la tablet a la quinta nota
+### 1. Sincronizar entre sucursales
 
-Esto hay que arreglarlo antes de ponerla a trabajar. Está medido en Chrome:
+El punto 6 pide una tablet por sucursal y hoy no se hablan. El corte del
+punto 8 no va a cuadrar cuando sean dos. El respaldo sirve para pasar la
+libreta de una tablet a otra, no para que trabajen al mismo tiempo.
 
-| | |
-|---|---|
-| Una foto, ya achicada a 1000 px y en JPEG al 0.7 | 252 KB |
-| Una firma | 23 KB |
-| Una nota con cuatro fotos y su firma | 1,032 KB |
-| Notas que caben antes de tronar | **4** |
-| Notas que caben si no se guardaran fotos | 19,201 |
+### 2. Avisarle al cliente
 
-El almacén del navegador son unos 5 MB y no se puede subir. La salida es
-guardar las fotos en IndexedDB, que sí crece con el disco, y dejar en el
-almacén chico nada más los datos de la nota.
+El teléfono se captura y ahí se queda. Con la ropa embolsada el jueves a
+mediodía, un mensaje vacía el mostrador más rápido.
 
-### 2. Respaldo
+### 3. La merma del anticipo
 
-Todo vive en una sola tablet. Si se pierde, se moja o alguien le borra los
-datos del navegador, se va la libreta completa del negocio. Hace falta por lo
-menos poder descargar todo a un archivo, y de ahí para arriba un servidor.
+El punto 23 la menciona como la razón del 50% de anticipo. No hay dónde
+apuntar la ropa que nadie recogió.
 
-### 3. Buscar entre las notas
-
-Corregir una nota ya se puede: se toca en el tablero y se abre. Lo que falta
-es buscarla. El tablero sirve para ver el día; con 90 notas al mes hay que
-poder escribir un número de nota o un nombre y que salga, sin recorrer cinco
-columnas.
-
-### 4. Sincronizar entre sucursales
-
-El punto 6 pide una tablet por sucursal y hoy no se hablan. No urge mientras
-usen una sola, pero el corte del punto 8 no va a cuadrar cuando sean dos.
-
-### 5. Confirmar con el dueño
+### 4. Confirmar con el dueño
 
 Las cuatro preguntas del final de `APUNTES.md`.
+
+Lo demás está en [MEJORAS.md](MEJORAS.md): los 23 apuntes uno por uno y los
+tres caminos para seguir.
