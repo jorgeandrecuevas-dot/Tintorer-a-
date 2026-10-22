@@ -38,3 +38,57 @@ body {
   border: 1px solid #f1aeb5;
   border-radius: .375rem;
 }
+
+/* El lienzo de la firma. El alto real lo pone el JavaScript al doble, para
+   que no se vea pixelada en la tablet. */
+.firma {
+  width: 100%;
+  height: 140px;
+  touch-action: none;      /* sin esto, arrastrar el dedo desplaza la página */
+  background: #fff;
+  cursor: crosshair;
+}
+
+/* Los tres documentos que se imprimen. En pantalla no se ven. */
+#hoja {
+  display: none;
+}
+
+.hoja-renglon {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .15rem 0;
+}
+
+.hoja-fecha {
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+.hoja-obs {
+  margin-top: 1rem;
+  padding: .5rem;
+  border: 1px solid #000;
+}
+
+.hoja-firma {
+  margin-top: 3rem;
+  padding-top: .4rem;
+  border-top: 1px solid #000;
+  width: 60%;
+  font-size: .85rem;
+  color: #555;
+}
+
+@media print {
+  body.imprimiendo > *:not(#hoja) { display: none !important; }
+  body.imprimiendo #hoja {
+    display: block;
+    font-family: Arial, sans-serif;
+    font-size: 11pt;
+    max-width: 10cm;
+  }
+  body.imprimiendo #hoja h2 { font-size: 14pt; margin: 0 0 .2rem; }
+  @page { margin: 1.5cm; }
+}
