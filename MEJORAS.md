@@ -8,7 +8,7 @@ quedaron resueltos. Lo que sigue abajo con un ✓ ya está.
 
 ## Los 23 puntos, uno por uno
 
-De 23 apuntes hay **17 hechos, 5 a medias y 1 sin hacer.**
+De 23 apuntes hay **20 hechos, 2 a medias y 1 sin hacer.**
 
 | # | Lo que dijo el negocio | Cómo está |
 |---|---|---|
@@ -17,18 +17,18 @@ De 23 apuntes hay **17 hechos, 5 a medias y 1 sin hacer.**
 | 3 | Nota de la maquila con el total que va y que vuelve | Hecho |
 | 4 | Se le paga antes de llevarse la ropa | Hecho, va en la nota de maquila |
 | 5 | Pesa más la cantidad que el tipo de ropa | Hecho, la cantidad va primero |
-| 6 | Una tablet por sucursal | **A medias.** Hay una sola, y «Sucursal 1» está escrito a mano |
+| 6 | Una tablet por sucursal | **A medias.** Hay una sola. Cada tablet ya lleva su nombre, pero no se hablan |
 | 7 | Registro para cliente, maquila y costos | Hecho, son cuatro documentos |
 | 8 | Control financiero | Hecho, pantalla de Corte |
 | 9 | Anticipo y pago total | Hecho. El monto se escribe |
 | 10 | Estatus del pedido | Hecho, cinco etapas |
-| 11 | Checklist de entregadas y pendientes | **A medias.** El tablero lo enseña, pero no hay lista para palomear |
+| 11 | Checklist de entregadas y pendientes | Hecho, lista de entregas en el tablero |
 | 12 | Martes, jueves y sábado | Hecho, la fecha de entrega sale sola |
 | 13 | Cobertores tardan más | Hecho, saltan un ciclo |
-| 14 | A veces van ellos, a veces vienen | **Sin hacer.** No cambia nada en pantalla |
-| 15 | El lunes aparta lo que sale el martes | **A medias.** Maquila enseña lo que sale, pero no por fecha |
+| 14 | A veces van ellos, a veces vienen | **Sin hacer.** Falta que el dueño confirme cómo es |
+| 15 | El lunes aparta lo que sale el martes | Hecho, Maquila dice qué día sale y se palomea lo apartado |
 | 16 | Imprimir lo capturado y el documento para firmar con la maquila | Hecho |
-| 17 | Tres PDF | **A medias.** Se imprimen desde el navegador. No se genera el archivo |
+| 17 | Tres PDF | **A medias.** Se imprimen desde el navegador y ahí se guarda como PDF. No se genera el archivo directo |
 | 18 | El número de nota lo pone él | Hecho |
 | 19 | El cliente firma de recibido | Hecho |
 | 20 | Firmar de recibido y entregado, sin internet | Hecho. Probado con el servidor apagado |
@@ -53,10 +53,9 @@ y otro para restaurarlo.
 El tablero tiene buscador por número de nota o por cliente, sin pedir
 acentos.
 
-### 4. El teléfono se captura y no sirve de nada
+### 4. El teléfono se captura y no sirve de nada ✓
 
-Se guarda y ahí se queda. Con la ropa embolsada el jueves a mediodía, un
-mensaje al cliente vacía el mostrador más rápido.
+La ropa embolsada trae un botón que abre WhatsApp con el mensaje escrito.
 
 ### 5. El cliente se vuelve a teclear cada vez ✓
 
@@ -68,10 +67,30 @@ teléfono. Se toca uno y se llenan los dos campos.
 El punto 6 pide una tablet por sucursal. Hoy el corte del punto 8 no va a
 cuadrar cuando sean dos.
 
-### 7. La merma del anticipo no se mide
+### 7. La merma del anticipo ✓ se mide, falta evitarla
 
-El punto 23 la menciona como la razón del 50%. No hay dónde apuntar la ropa
-que nadie recogió.
+La merma es cuando dejan el anticipo y no regresan por la ropa. La maquila ya
+se pagó y el negocio no gana nada. Corte ya cuenta la ropa que lleva 15 días
+o más embolsada y dice cuánto anticipo se quedó contra cuánto se le pagó a la
+maquila.
+
+Evitarla es decisión del dueño. Hay un dato que ayuda: **el anticipo de 50%
+no cubre lo que cobra la maquila en 45 de las 56 piezas.** Una camisa deja
+$35 y cuesta $40. Un vestido de novia de $1,200 deja $600 y cuesta $800.
+Cada prenda que no recogen es pérdida, aunque dejen anticipo.
+
+Dos ideas para platicar con él:
+
+1. **Anticipo mínimo igual al costo de la maquila**, no el 50% fijo. Es lo que
+   ya sale de su bolsa antes de que la ropa se vaya.
+2. **Cargo por almacenaje** que empiece unos días después de la fecha
+   prometida. Tiene que ir impreso en el ticket y firmado por el cliente. Se
+   llama cargo, no interés, y conviene que tenga tope y un plazo después del
+   cual el negocio se queda con la prenda. Hay que revisar con alguien que
+   sepa qué se puede cobrar así.
+
+Las notas nuevas ya guardan la fecha prometida completa para poder contar
+de ahí.
 
 ## Lo que mejoraría del código
 

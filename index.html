@@ -20,7 +20,7 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <span class="navbar-brand mb-0 ms-2">Tintorería</span>
-    <span class="text-secondary small">Sucursal 1</span>
+    <span class="text-secondary small" data-sucursal>Sucursal 1</span>
   </div>
 </nav>
 
@@ -51,7 +51,7 @@
       <li class="nav-item"><a class="nav-link text-white"        data-vista="maquila" href="#">Maquila</a></li>
       <li class="nav-item"><a class="nav-link text-white"        data-vista="corte"   href="#">Corte</a></li>
     </ul>
-    <div class="mt-4 small text-secondary">Sucursal 1</div>
+    <div class="mt-4 small text-secondary" data-sucursal>Sucursal 1</div>
     <div class="mt-2 small" id="estadoRed"></div>
   </aside>
 
@@ -60,6 +60,13 @@
     <div class="d-none d-lg-flex justify-content-between align-items-center mb-3">
       <h1 class="h4 mb-0" id="tituloVista">Nota nueva</h1>
       <span class="text-secondary" id="hoyTexto"></span>
+    </div>
+
+    <!-- Sale en cualquier pantalla cuando llevan una semana sin bajar el respaldo -->
+    <div class="alert alert-warning d-none d-flex flex-wrap align-items-center gap-2 py-2"
+         id="avisoRespaldoViejo" role="alert">
+      <span id="textoRespaldoViejo"></span>
+      <button type="button" class="btn btn-sm btn-warning ms-auto" id="btnRespaldoAviso">Bajar respaldo</button>
     </div>
 
     <!-- ================================================================
@@ -290,12 +297,21 @@
                    aria-label="Buscar una nota" aria-controls="columnas">
           </div>
         </div>
-        <div class="col-12 col-md-6 col-lg-8">
+        <div class="col-auto">
+          <div class="btn-group" role="group" aria-label="Cómo ver las notas">
+            <button type="button" class="btn btn-outline-primary active" id="modoEtapas">Por etapa</button>
+            <button type="button" class="btn btn-outline-primary" id="modoLista">Lista de entregas</button>
+          </div>
+        </div>
+        <div class="col-12 col-lg">
           <span class="small text-secondary" id="cuentaBusqueda"></span>
         </div>
       </div>
 
       <div class="row row-cols-1 row-cols-md-3 row-cols-xl-5 g-3" id="columnas"></div>
+
+      <!-- La misma ropa, en lista: lo que falta por entregar y lo que ya salió -->
+      <div class="d-none" id="listaEntregas"></div>
 
       <div class="text-center text-secondary py-5 d-none" id="sinResultadosNota">
         <p class="mb-0">Ninguna nota dice así.</p>
@@ -324,6 +340,8 @@
               <span class="fw-semibold">Listo para enviar</span>
               <span class="badge text-bg-secondary" id="contadorEnvio">0 notas</span>
             </div>
+            <!-- El lunes en la noche se aparta lo que sale el martes (punto 15) -->
+            <div class="px-3 py-2 small border-bottom bg-body-tertiary" id="envioSale"></div>
             <ul class="list-group list-group-flush" id="listaEnvio"></ul>
             <div class="card-body">
               <div class="row text-center g-2 mb-3">
@@ -384,6 +402,29 @@
           <div class="fs-4 fw-bold text-success" id="cUtilidad">$0</div></div></div></div>
       </div>
 
+      <!-- Cuando dejan el anticipo y no regresan, la maquila ya se pagó y no
+           hay ganancia. Aquí se ve cuánto es. -->
+      <div class="card mb-3" id="cajaSinRecoger">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div>
+              <h2 class="h6 mb-1">Ropa sin recoger</h2>
+              <p class="small text-secondary mb-0" id="sinRecogerTexto"></p>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary flex-shrink-0 d-none"
+                    id="btnVerSinRecoger">Ver cuáles</button>
+          </div>
+          <div class="row text-center g-2 mt-1 d-none" id="sinRecogerCifras">
+            <div class="col"><div class="text-secondary small text-uppercase">Anticipo guardado</div>
+              <div class="fs-5 fw-bold" id="srAnticipo">$0</div></div>
+            <div class="col"><div class="text-secondary small text-uppercase">Se pagó a la maquila</div>
+              <div class="fs-5 fw-bold text-danger" id="srCosto">$0</div></div>
+            <div class="col"><div class="text-secondary small text-uppercase">Quedó en</div>
+              <div class="fs-5 fw-bold" id="srQuedo">$0</div></div>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
@@ -404,12 +445,6 @@
         </div>
       </div>
 
-      <div class="alert alert-warning mt-3 mb-0">
-        <strong>Revisar:</strong> la sábana de una pieza se cobra en $70 y la maquila
-        cobra $100 por lavarla. Es la única de las 56 piezas del catálogo que se
-        vende por debajo de lo que cuesta.
-      </div>
-
       <!-- Todo vive en esta tablet. Si se pierde, se pierde la libreta del
            negocio. El respaldo es lo único que lo evita. -->
       <div class="card mt-3">
@@ -425,6 +460,15 @@
             <input type="file" id="archivoRespaldo" accept="application/json,.json" class="d-none">
             <span class="small text-secondary" id="avisoRespaldo"></span>
           </div>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-body">
+          <label for="nombreSucursal" class="form-label fw-semibold">Nombre de esta tablet</label>
+          <input type="text" id="nombreSucursal" class="form-control" maxlength="30"
+                 placeholder="Sucursal 1" autocomplete="off">
+          <div class="form-text">Sale en el menú y en los documentos que se imprimen.</div>
         </div>
       </div>
 
@@ -513,6 +557,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline-danger me-auto" id="btnBorrarNota">Borrar nota</button>
+        <button class="btn btn-outline-success" id="btnAvisarNota">Avisarle</button>
         <button class="btn btn-outline-primary" id="btnTicketNota">Imprimir ticket</button>
         <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
         <button class="btn btn-primary" id="btnGuardarNota">Guardar cambios</button>

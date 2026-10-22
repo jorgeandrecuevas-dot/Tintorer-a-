@@ -230,3 +230,35 @@ body {
   }
   @page { margin: 1.5cm; }
 }
+
+/* La casilla de la lista de entregas. Se llena cuando la ropa ya salió. No se
+   toca: entregar pide la firma del cliente, y eso va en su propio cuadro. */
+.caja-entrega {
+  position: relative;
+  flex-shrink: 0;
+  width: 1.4rem;
+  height: 1.4rem;
+  border: 2px solid #6c757d;
+  border-radius: .35rem;
+}
+
+.caja-entrega.hecha {
+  background: #198754;
+  border-color: #198754;
+}
+
+.caja-entrega.hecha::after {
+  content: '';
+  position: absolute;
+  left: .42rem;
+  top: .12rem;
+  width: .38rem;
+  height: .72rem;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.fila-hecha {
+  opacity: .65;
+}

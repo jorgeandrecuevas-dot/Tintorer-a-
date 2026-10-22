@@ -59,6 +59,20 @@ Cinco etapas: recibida, en maquila, de vuelta, embolsada y entregada. Las
 notas con saldo traen su marca, las observaciones se ven desde aquí, y lo
 que no regresó completo de la maquila sale marcado en rojo.
 
+**Lista de entregas.** El botón de arriba cambia las columnas por una lista de
+lo que falta darle a la gente. Primero lo embolsado, y dentro de eso lo que
+más lleva esperando. Cada nota trae su casilla, que se llena cuando la ropa
+sale. Abajo, lo que ya se entregó hoy. Es el punto 11 de los apuntes.
+
+![Lista de entregas](capturas/lista.png)
+
+**Avisarle al cliente.** La ropa embolsada trae un botón que abre WhatsApp con
+el mensaje escrito: «Hola Marta, tu ropa ya está lista (nota 0501). Pasa por
+ella cuando quieras. Quedan $90 por pagar.» Solo le das enviar. La nota queda
+marcada como avisada. Sin teléfono, el botón dice que falta. La app no manda
+nada sola: el mensaje sale de la cuenta del negocio. Una nota que regresa de
+la maquila trae su botón **Ya está embolsada** para pasar a la siguiente.
+
 **Se busca por número o por cliente.** Escribes «0502» o «sofia» y sale, sin
 pedir acentos. Con 90 notas al mes recorrer cinco columnas con el dedo tarda
 más que teclear.
@@ -74,6 +88,11 @@ mal y antes no había manera de arreglarlo.
 
 Lo que sale, cuántas prendas son y cuánto se le paga en el momento.
 
+Arriba de la lista dice qué día sale y cuántas notas lleva apartadas: «Sale el
+martes 27 oct · 2 de 4 apartadas». El lunes en la noche él va palomeando lo
+que ya dejó en la bolsa (punto 15). La casilla es para acordarse. No impide
+mandar la ropa.
+
 Al recibir de vuelta, cada nota trae una casilla con lo que salió para
 contar lo que regresó. Si no cuadra, la nota queda marcada. Eso es el
 control del punto 2: que no se pierda ropa en la maquila.
@@ -84,6 +103,21 @@ control del punto 2: que no se pierda ropa en la maquila.
 
 Facturado, cobrado, por cobrar, lo pagado a la maquila y la utilidad. Sale
 de las notas capturadas, no de juntar tickets.
+
+**Ropa sin recoger.** Cuando dejan el anticipo y no regresan, la maquila ya se
+pagó y no hay ganancia. Esa es la merma del punto 23. Una nota con 15 días
+embolsada o más cuenta como sin recoger. Corte dice cuántas son, cuánto
+anticipo se quedó, cuánto se le pagó a la maquila por esa ropa y en cuánto
+quedó. El botón **Ver cuáles** las enseña en la lista de entregas. Los 15 días
+son una suposición hasta que el dueño diga cuántos son.
+
+**Aviso de respaldo.** Si llevan 7 días sin bajarlo, sale un aviso arriba en
+cualquier pantalla con el botón para bajarlo. El primer día con notas no
+avisa.
+
+**Nombre de la tablet.** Dice «Sucursal 1» y se cambia ahí mismo. Sale en el
+menú y en los documentos. Cuando abran la segunda, cada tablet lleva su
+nombre.
 
 ## Las dos firmas
 
@@ -180,9 +214,14 @@ un kilo cuesta $32 en lugar de $48.
 El botón **Ver margen** arranca oculto porque el cliente está viendo la
 pantalla cuando se levanta la nota.
 
-La sábana de una pieza se cobra en $70 y la maquila cobra $100 por lavarla.
-Es la única de las 56 que se vende por debajo de lo que cuesta, y está
-pendiente de confirmar con el dueño.
+La sábana de una pieza estaba en $70 y la maquila cobra $100 por lavarla. Se
+corrigió a $100 el 22 de octubre. Queda sin ganancia en esa pieza: cobra lo
+mismo que cuesta.
+
+El anticipo de 50% tampoco cubre la maquila en 45 de las 56 piezas. En una
+camisa el cliente deja $35 y la maquila cobra $40. En un vestido de novia de
+$1,200 deja $600 y la maquila cobra $800. Si no recogen, esa diferencia se
+pierde. Está en Pendientes.
 
 ## Dónde vive cada cosa
 
@@ -210,23 +249,32 @@ borra los datos del navegador. Hay que bajarlo seguido y guardarlo fuera.
 
 ### 1. Sincronizar entre sucursales
 
-El punto 6 pide una tablet por sucursal y hoy no se hablan. El corte del
-punto 8 no va a cuadrar cuando sean dos. El respaldo sirve para pasar la
-libreta de una tablet a otra, no para que trabajen al mismo tiempo.
+Hoy es una sola. Cuando abran la segunda, las dos tablets no se hablan. El
+corte no va a cuadrar y hace falta un servidor. El respaldo sirve para pasar
+la libreta de una tablet a otra, no para que trabajen al mismo tiempo.
 
-### 2. Avisarle al cliente
+### 2. La merma del anticipo
 
-El teléfono se captura y ahí se queda. Con la ropa embolsada el jueves a
-mediodía, un mensaje vacía el mostrador más rápido.
+Ya se mide. Falta decidir cómo evitarla. Hay dos ideas y las dos son del
+dueño:
 
-### 3. La merma del anticipo
+- Que el anticipo mínimo sea lo que cuesta la maquila, no el 50% fijo. Hoy
+  no cubre en 45 de 56 piezas.
+- Un cargo por almacenaje que empiece unos días después de la fecha prometida
+  y que salga impreso y firmado en el ticket.
 
-El punto 23 la menciona como la razón del 50% de anticipo. No hay dónde
-apuntar la ropa que nadie recogió.
+La fecha prometida ya se guarda completa en cada nota nueva, para poder
+contar de ahí.
 
-### 4. Confirmar con el dueño
+### 3. Quién paga lo que la maquila pierde o maltrata
 
-Las cuatro preguntas del final de `APUNTES.md`.
+Pendiente de preguntar. Cuando se sepa, la nota de maquila y el conteo lo
+llevan.
+
+### 4. El punto 14
+
+A veces van ellos a la maquila y a veces vienen por la ropa. Falta que el
+dueño confirme cómo es, para saber si cambia algo en pantalla.
 
 Lo demás está en [MEJORAS.md](MEJORAS.md): los 23 apuntes uno por uno y los
 tres caminos para seguir.

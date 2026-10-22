@@ -40,6 +40,7 @@ function irA(nombre) {
   });
 
   document.getElementById('tituloVista').textContent = TITULOS[nombre];
+  pintarAvisoRespaldo();
 
   // Cada pantalla se vuelve a dibujar al entrar, porque todas leen las
   // mismas notas guardadas y cualquiera pudo haberlas movido.
@@ -213,7 +214,7 @@ const CATALOGO = [
   // --- Blancos ---
   { cat: 'blancos', nombre: 'Funda almohada',         costo: 40,  precio: 70 },
   { cat: 'blancos', nombre: 'Funda almohada grande',  costo: 60,  precio: 80 },
-  { cat: 'blancos', nombre: 'Sábana 1 pieza',         costo: 100, precio: 70 },
+  { cat: 'blancos', nombre: 'Sábana 1 pieza',         costo: 100, precio: 100 },
   { cat: 'blancos', nombre: 'Toalla manos',           costo: 40,  precio: 70 },
   { cat: 'blancos', nombre: 'Toalla grande baño',     costo: 60,  precio: 90 },
   { cat: 'blancos', nombre: 'Toalla extra larga',     costo: 80,  precio: 95 },
@@ -274,6 +275,7 @@ function lavanderia(kg) {
 const DIAS_SALIDA = [2, 4, 6];                 // martes, jueves, sábado
 const TARDAN_MAS  = ['cobertores', 'edredones'];
 const DIAS  = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+const DIAS_LARGOS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun',
                'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
@@ -304,6 +306,22 @@ function textoFecha(d) {
 }
 
 document.getElementById('hoyTexto').textContent = textoFecha(new Date());
+
+// Cada tablet lleva su nombre. Hoy es una sola. Cuando abran la segunda,
+// cada una se llama como quiera sin tocar el código.
+const LLAVE_SUCURSAL = 'tintoreria.sucursal';
+
+function nombreSucursal() {
+  try { return localStorage.getItem(LLAVE_SUCURSAL) || 'Sucursal 1'; }
+  catch (e) { return 'Sucursal 1'; }
+}
+
+function pintarSucursal() {
+  document.querySelectorAll('[data-sucursal]').forEach(function (el) {
+    el.textContent = nombreSucursal();
+  });
+}
+pintarSucursal();
 
 
 /* -------------------------------------------------------------------------
@@ -353,6 +371,46 @@ function conId(n) {
 
 let NOTAS = leerNotas().map(conId);
 
+// Cambia la nota de etapa y anota desde cuándo está embolsada. Ese día es el
+// que cuenta para saber cuánto lleva esperando que pasen por su ropa.
+function ponerEstatus(n, estatus) {
+  n.estatus = estatus;
+  if (estatus === 'lista') n.listaDesde = new Date().toISOString();
+  else delete n.listaDesde;
+  if (estatus === 'entregada') n.entregadaEl = new Date().toISOString();
+  else delete n.entregadaEl;
+}
+
+/* La ropa que nadie recoge.
+
+   Cuando dejan el anticipo y no regresan, la maquila ya se cobró y el negocio
+   se queda sin ganancia. Es lo que el punto 23 llama merma. Cuántos días
+   esperar antes de darla por no recogida lo decide el dueño: 15 es mi
+   suposición hasta que lo confirme. */
+
+const DIAS_SIN_RECOGER = 15;
+
+function diasEmbolsada(n) {
+  if (n.estatus !== 'lista' || !n.listaDesde) return null;
+  return Math.max(0, Math.floor((Date.now() - new Date(n.listaDesde).getTime()) / 86400000));
+}
+
+function sinRecoger(n) {
+  const d = diasEmbolsada(n);
+  return d !== null && d >= DIAS_SIN_RECOGER;
+}
+
+function textoHace(dias) {
+  if (dias === 0) return 'hoy';
+  return 'hace ' + dias + (dias === 1 ? ' día' : ' días');
+}
+
+function haceDias(dias) {
+  const d = new Date();
+  d.setDate(d.getDate() - dias);
+  return d.toISOString();
+}
+
 // La aplicación arranca vacía. Las notas de ejemplo se cargan a propósito
 // desde el Corte, cuando se quiere enseñar cómo se ve trabajando.
 function notasDeEjemplo() {
@@ -370,6 +428,10 @@ function notasDeEjemplo() {
     n.entrega = textoFecha(fechaEntrega(hoy, false));
     n.observaciones = '';
     n.fotos = [];
+    n.creada = haceDias(25);
+    // Una de las notas lleva 20 días embolsada: así se ve cómo marca la ropa
+    // que nadie recoge
+    if (n.estatus === 'lista') n.listaDesde = haceDias(20);
     return conId(n);
   });
 }
@@ -1000,9 +1062,14 @@ function terminarDeGuardar(folio, c, firma, fotosGuardadas) {
     observaciones: inpObserva.value.trim(),
     detalle: c.renglones.map(function (r) { return r.texto; }).join(' · '),
     entrega: textoFecha(c.entrega),
+    // La fecha prometida completa. El texto de arriba no se puede volver a
+    // leer como fecha, y si algún día se cobra por tardar en recoger, hace
+    // falta saber de qué día se cuenta.
+    entregaISO: c.entrega.toISOString(),
     firmaRecibido: firma,
     fotos: seFueronFotos,
-    estatus: 'recibida'
+    estatus: 'recibida',
+    creada: new Date().toISOString()
   }));
 
   if (!escribirNotas(NOTAS)) {
@@ -1039,6 +1106,48 @@ function terminarDeGuardar(folio, c, firma, fotosGuardadas) {
 /* -------------------------------------------------------------------------
    8. TABLERO
    ------------------------------------------------------------------------- */
+
+/* Avisarle al cliente que su ropa ya está.
+
+   El teléfono se capturaba y no servía de nada. Con la ropa embolsada, un
+   mensaje vacía el mostrador más rápido que esperar a que pasen. Abre
+   WhatsApp con el texto ya escrito y el que atiende solo le da enviar. No
+   hay servidor de por medio: el mensaje sale de la propia cuenta del negocio. */
+
+function telefonoWhatsApp(tel) {
+  const d = (tel || '').replace(/\D/g, '');
+  if (d.length === 10) return '52' + d;
+  if (d.length === 12 && d.slice(0, 2) === '52') return d;
+  if (d.length === 13 && d.slice(0, 3) === '521') return '52' + d.slice(3);
+  return null;
+}
+
+function mensajeDeAviso(n) {
+  const nombre = (n.cliente || '').trim().split(/\s+/)[0];
+  const saludo = nombre && nombre !== 'Sin' ? 'Hola ' + nombre + ', ' : 'Hola, ';
+  let texto = saludo + 'tu ropa ya está lista (nota ' + n.folio + '). ' +
+              'Pasa por ella cuando quieras.';
+  if (n.saldo > 0) texto += ' Quedan ' + pesos(n.saldo) + ' por pagar.';
+  return texto;
+}
+
+function avisarPorWhatsApp(n) {
+  const numero = telefonoWhatsApp(n.telefono);
+  if (!numero) {
+    avisar(n.telefono
+      ? 'El teléfono de la nota ' + n.folio + ' no se entiende. Corrígelo en la nota.'
+      : 'La nota ' + n.folio + ' no tiene teléfono.');
+    return;
+  }
+
+  const url = 'https://wa.me/' + numero + '?text=' + encodeURIComponent(mensajeDeAviso(n));
+  const ventana = window.open(url, '_blank', 'noopener');
+  if (!ventana) { avisar('No se pudo abrir WhatsApp.'); return; }
+
+  n.avisadaEl = new Date().toISOString();
+  escribirNotas(NOTAS);
+  dibujarTablero();
+}
 
 function tarjetaNota(n) {
   const li = document.createElement('li');
@@ -1082,16 +1191,64 @@ function tarjetaNota(n) {
     li.appendChild(obs);
   }
 
+  // Lo que regresó de la maquila se embolsa antes de entregarlo
+  if (n.estatus === 'devuelta') {
+    const embolsar = document.createElement('button');
+    embolsar.className = 'btn btn-sm btn-outline-success w-100 mt-2';
+    embolsar.textContent = 'Ya está embolsada';
+    embolsar.addEventListener('click', function (evento) {
+      evento.stopPropagation();
+      ponerEstatus(n, 'lista');
+      escribirNotas(NOTAS);
+      dibujarTablero();
+    });
+    li.appendChild(embolsar);
+  }
+
   // Lo embolsado es lo que el cliente puede venir a recoger
   if (n.estatus === 'lista') {
+    const dias = diasEmbolsada(n);
+    if (dias !== null) {
+      const espera = document.createElement('div');
+      espera.className = 'small text-secondary mt-1';
+      espera.textContent = 'Embolsada ' + textoHace(dias);
+      li.appendChild(espera);
+    }
+    if (sinRecoger(n)) {
+      const marca = document.createElement('div');
+      marca.className = 'badge text-bg-danger mt-1';
+      marca.textContent = 'Sin recoger';
+      li.appendChild(marca);
+    }
+    if (n.avisadaEl) {
+      const avisada = document.createElement('div');
+      avisada.className = 'small text-success mt-1';
+      avisada.textContent = 'Avisada ' + textoFecha(new Date(n.avisadaEl));
+      li.appendChild(avisada);
+    }
+
+    const botones = document.createElement('div');
+    botones.className = 'd-flex gap-2 mt-2';
+
+    const avisarle = document.createElement('button');
+    avisarle.className = 'btn btn-sm btn-outline-success flex-fill';
+    avisarle.textContent = 'Avisarle';
+    avisarle.addEventListener('click', function (evento) {
+      evento.stopPropagation();
+      avisarPorWhatsApp(n);
+    });
+
     const entregar = document.createElement('button');
-    entregar.className = 'btn btn-sm btn-primary w-100 mt-2';
+    entregar.className = 'btn btn-sm btn-primary flex-fill';
     entregar.textContent = n.saldo > 0 ? 'Cobrar y entregar' : 'Entregar';
     entregar.addEventListener('click', function (evento) {
       evento.stopPropagation();        // si no, también abre el cuadro de la nota
       abrirEntrega(n.id);
     });
-    li.appendChild(entregar);
+
+    botones.appendChild(avisarle);
+    botones.appendChild(entregar);
+    li.appendChild(botones);
   }
   return li;
 }
@@ -1106,14 +1263,33 @@ function notaCoincide(n, texto) {
   return sinAcentos(n.folio + ' ' + n.cliente).indexOf(texto) !== -1;
 }
 
+// "etapas" son las cinco columnas. "lista" es la lista de entregas.
+let modoTablero = 'etapas';
+
+function pintarModo() {
+  document.getElementById('modoEtapas').classList.toggle('active', modoTablero === 'etapas');
+  document.getElementById('modoLista').classList.toggle('active', modoTablero === 'lista');
+}
+
+document.getElementById('modoEtapas').addEventListener('click', function () {
+  modoTablero = 'etapas'; dibujarTablero();
+});
+document.getElementById('modoLista').addEventListener('click', function () {
+  modoTablero = 'lista'; dibujarTablero();
+});
+
 function dibujarTablero() {
   const cajon = document.getElementById('columnas');
+  const cajaLista = document.getElementById('listaEntregas');
   cajon.innerHTML = '';
+  cajaLista.innerHTML = '';
+  pintarModo();
 
   const vacio = NOTAS.length === 0;
   document.getElementById('tableroVacio').classList.toggle('d-none', !vacio);
   document.getElementById('filaBuscarNota').classList.toggle('d-none', vacio);
-  cajon.classList.toggle('d-none', vacio);
+  cajon.classList.toggle('d-none', vacio || modoTablero === 'lista');
+  cajaLista.classList.toggle('d-none', vacio || modoTablero !== 'lista');
   document.getElementById('sinResultadosNota').classList.add('d-none');
   if (vacio) { document.getElementById('cuentaBusqueda').textContent = ''; return; }
 
@@ -1131,9 +1307,12 @@ function dibujarTablero() {
 
   if (halladas.length === 0) {
     cajon.classList.add('d-none');
+    cajaLista.classList.add('d-none');
     document.getElementById('sinResultadosNota').classList.remove('d-none');
     return;
   }
+
+  if (modoTablero === 'lista') { dibujarLista(halladas); return; }
 
   ETAPAS.forEach(function (etapa) {
     const deEsta = halladas.filter(function (n) { return n.estatus === etapa.id; });
@@ -1166,6 +1345,160 @@ function dibujarTablero() {
   });
 }
 
+
+/* La lista de entregas.
+
+   El punto 11 pide un checklist de las notas entregadas y las pendientes. Las
+   columnas dicen en qué etapa va cada nota. Esto dice qué falta por darle a
+   la gente. Primero la ropa que ya está embolsada, y dentro de ella la que
+   lleva más días esperando. */
+
+function filaEntrega(n) {
+  const hecha = n.estatus === 'entregada';
+  const li = document.createElement('li');
+  li.className = 'list-group-item nota-tocable d-flex align-items-center gap-3' +
+                 (hecha ? ' fila-hecha' : '');
+  li.tabIndex = 0;
+  li.setAttribute('role', 'button');
+  li.setAttribute('aria-label', 'Ver la nota ' + n.folio + ' de ' + n.cliente);
+  li.addEventListener('click', function () { abrirNota(n.id); });
+  li.addEventListener('keydown', function (evento) {
+    if (evento.key === 'Enter' || evento.key === ' ') { evento.preventDefault(); abrirNota(n.id); }
+  });
+
+  const caja = document.createElement('span');
+  caja.className = 'caja-entrega' + (hecha ? ' hecha' : '');
+  caja.setAttribute('aria-hidden', 'true');
+  li.appendChild(caja);
+
+  const centro = document.createElement('div');
+  centro.className = 'flex-grow-1 min-w-0';
+  const titulo = document.createElement('div');
+  titulo.className = 'fw-semibold';
+  titulo.textContent = n.folio + ' · ' + n.cliente;
+  const datos = document.createElement('small');
+  datos.className = 'text-secondary';
+  datos.textContent = n.piezas + (n.piezas === 1 ? ' pieza · ' : ' piezas · ') + pesos(n.total);
+  centro.appendChild(titulo);
+  centro.appendChild(datos);
+
+  const etiquetas = document.createElement('div');
+  etiquetas.className = 'mt-1';
+  const etapa = ETAPAS.find(function (e) { return e.id === n.estatus; });
+  const marcaEtapa = document.createElement('span');
+  marcaEtapa.className = 'badge me-1 text-bg-' + (etapa ? etapa.color : 'secondary');
+  marcaEtapa.textContent = etapa ? etapa.nombre : n.estatus;
+  etiquetas.appendChild(marcaEtapa);
+
+  if (!hecha && n.saldo > 0) {
+    const debe = document.createElement('span');
+    debe.className = 'badge me-1 text-bg-warning';
+    debe.textContent = 'Debe ' + pesos(n.saldo);
+    etiquetas.appendChild(debe);
+  }
+  const dias = diasEmbolsada(n);
+  if (dias !== null) {
+    const espera = document.createElement('span');
+    espera.className = 'badge me-1 ' + (sinRecoger(n) ? 'text-bg-danger' : 'text-bg-light border');
+    espera.textContent = sinRecoger(n) ? 'Sin recoger · ' + dias + ' días'
+                                       : 'Embolsada ' + textoHace(dias);
+    etiquetas.appendChild(espera);
+  }
+  if (n.avisadaEl && n.estatus === 'lista') {
+    const avisada = document.createElement('span');
+    avisada.className = 'badge me-1 text-bg-success';
+    avisada.textContent = 'Avisada ' + textoFecha(new Date(n.avisadaEl));
+    etiquetas.appendChild(avisada);
+  }
+  centro.appendChild(etiquetas);
+  li.appendChild(centro);
+
+  if (n.estatus === 'lista') {
+    const botones = document.createElement('div');
+    botones.className = 'd-flex gap-2 flex-shrink-0';
+
+    const avisarle = document.createElement('button');
+    avisarle.type = 'button';
+    avisarle.className = 'btn btn-sm btn-outline-success';
+    avisarle.textContent = 'Avisarle';
+    avisarle.addEventListener('click', function (evento) {
+      evento.stopPropagation();
+      avisarPorWhatsApp(n);
+    });
+
+    const entregar = document.createElement('button');
+    entregar.type = 'button';
+    entregar.className = 'btn btn-sm btn-primary';
+    entregar.textContent = n.saldo > 0 ? 'Cobrar y entregar' : 'Entregar';
+    entregar.addEventListener('click', function (evento) {
+      evento.stopPropagation();
+      abrirEntrega(n.id);
+    });
+
+    botones.appendChild(avisarle);
+    botones.appendChild(entregar);
+    li.appendChild(botones);
+  }
+  return li;
+}
+
+function bloqueDeLista(titulo, notas, vacio) {
+  const tarjeta = document.createElement('div');
+  tarjeta.className = 'card mb-3';
+
+  const cabeza = document.createElement('div');
+  cabeza.className = 'card-header d-flex justify-content-between align-items-center';
+  const nombre = document.createElement('span');
+  nombre.className = 'fw-semibold';
+  nombre.textContent = titulo;
+  const cuenta = document.createElement('span');
+  cuenta.className = 'badge text-bg-secondary';
+  cuenta.textContent = notas.length;
+  cabeza.appendChild(nombre);
+  cabeza.appendChild(cuenta);
+  tarjeta.appendChild(cabeza);
+
+  if (notas.length === 0) {
+    const nada = document.createElement('div');
+    nada.className = 'card-body text-secondary small';
+    nada.textContent = vacio;
+    tarjeta.appendChild(nada);
+    return tarjeta;
+  }
+
+  const lista = document.createElement('ul');
+  lista.className = 'list-group list-group-flush';
+  notas.forEach(function (n) { lista.appendChild(filaEntrega(n)); });
+  tarjeta.appendChild(lista);
+  return tarjeta;
+}
+
+function dibujarLista(notas) {
+  const caja = document.getElementById('listaEntregas');
+  const buscando = loQueBusca.trim() !== '';
+  const hoy = new Date().toDateString();
+
+  // La más cercana a la puerta primero. Dentro de cada etapa, la que más lleva
+  // esperando. Las notas sin fecha, al final de su etapa.
+  const fechaDe = function (n) { return n.listaDesde || n.creada || '9'; };
+  const pendientes = notas.filter(function (n) { return n.estatus !== 'entregada'; })
+    .sort(function (a, b) {
+      const ia = ETAPAS.findIndex(function (e) { return e.id === a.estatus; });
+      const ib = ETAPAS.findIndex(function (e) { return e.id === b.estatus; });
+      if (ia !== ib) return ib - ia;
+      return fechaDe(a) < fechaDe(b) ? -1 : 1;
+    });
+
+  // Sin buscar, solo las de hoy: la lista es para cerrar el día, no un archivo
+  const entregadas = notas.filter(function (n) {
+    return n.estatus === 'entregada' &&
+           (buscando || (n.entregadaEl && new Date(n.entregadaEl).toDateString() === hoy));
+  });
+
+  caja.appendChild(bloqueDeLista('Por entregar', pendientes, 'No falta nada por entregar.'));
+  caja.appendChild(bloqueDeLista(buscando ? 'Entregadas' : 'Entregadas hoy', entregadas,
+    buscando ? 'Ninguna entregada con ese nombre.' : 'Todavía no entregas nada hoy.'));
+}
 
 document.getElementById('buscarNota').addEventListener('input', function (evento) {
   loQueBusca = evento.target.value;
@@ -1283,7 +1616,8 @@ document.getElementById('btnGuardarNota').addEventListener('click', function () 
   notaAbierta.cliente = document.getElementById('edCliente').value.trim() || 'Sin nombre';
   notaAbierta.telefono = document.getElementById('edTelefono').value.trim();
   notaAbierta.observaciones = document.getElementById('edObserva').value.trim();
-  notaAbierta.estatus = selEstatus.value;
+  // Solo si cambió: guardar otra corrección no debe reiniciar los días
+  if (selEstatus.value !== notaAbierta.estatus) ponerEstatus(notaAbierta, selEstatus.value);
 
   const recibido = Math.min(notaAbierta.total,
     Math.max(0, parseFloat(document.getElementById('edRecibido').value) || 0));
@@ -1356,7 +1690,7 @@ document.getElementById('btnConfirmarEntrega').addEventListener('click', functio
     nota.firmaEntrega = nombre;
     nota.pagado = nota.total;        // al recoger se liquida
     nota.saldo = 0;
-    nota.estatus = 'entregada';
+    ponerEstatus(nota, 'entregada');
     escribirNotas(NOTAS);
 
     bootstrap.Modal.getOrCreateInstance(cuadroEntrega).hide();
@@ -1389,7 +1723,30 @@ function renglonMaquila(n, conConteo) {
   s.textContent = n.detalle || '';
   izq.appendChild(t);
   izq.appendChild(s);
-  li.appendChild(izq);
+
+  if (conConteo) {
+    li.appendChild(izq);
+  } else {
+    // La ropa que sale se aparta el lunes en la noche. La casilla es para que
+    // él sepa qué ya está en la bolsa y qué falta, no impide mandarla.
+    const lado = document.createElement('div');
+    lado.className = 'd-flex align-items-center gap-3 min-w-0';
+    const casilla = document.createElement('input');
+    casilla.type = 'checkbox';
+    casilla.className = 'form-check-input flex-shrink-0 m-0 casilla-apartada';
+    casilla.style.width = '1.4rem';
+    casilla.style.height = '1.4rem';
+    casilla.checked = !!n.apartada;
+    casilla.setAttribute('aria-label', 'Apartar la nota ' + n.folio);
+    casilla.addEventListener('change', function () {
+      n.apartada = casilla.checked;
+      escribirNotas(NOTAS);
+      dibujarMaquila();
+    });
+    lado.appendChild(casilla);
+    lado.appendChild(izq);
+    li.appendChild(lado);
+  }
 
   if (conConteo) {
     // El punto 3 pide la nota del total de prendas enviadas y a recibir. Al
@@ -1460,12 +1817,23 @@ function dibujarMaquila() {
   document.getElementById('envioPago').textContent   = pesos(pago);
   document.getElementById('envioRegreso').textContent =
     textoFecha(regresoDe(proximaSalida(new Date())));
+
+  const sale = document.getElementById('envioSale');
+  if (envio.length === 0) {
+    sale.textContent = 'No hay ropa por enviar.';
+  } else {
+    const apartadas = envio.filter(function (n) { return n.apartada; }).length;
+    const dia = DIAS_LARGOS[proximaSalida(new Date()).getDay()];
+    sale.textContent = 'Sale el ' + dia + ' ' + textoFecha(proximaSalida(new Date())).split(' ').slice(1).join(' ') +
+      ' · ' + apartadas + ' de ' + envio.length + (envio.length === 1 ? ' apartada' : ' apartadas');
+    sale.classList.toggle('text-success', apartadas === envio.length);
+  }
 }
 
 document.getElementById('btnEnviar').addEventListener('click', function () {
   const envio = porEnviar();
   if (envio.length === 0) { avisar('No hay notas para enviar.'); return; }
-  envio.forEach(function (n) { n.estatus = 'maquila'; });
+  envio.forEach(function (n) { ponerEstatus(n, 'maquila'); delete n.apartada; });
   escribirNotas(NOTAS);
   dibujarMaquila();
   avisar(envio.length + (envio.length === 1 ? ' nota salió' : ' notas salieron') + ' a la maquila.');
@@ -1485,7 +1853,7 @@ document.getElementById('btnRecibir').addEventListener('click', function () {
     const regresaron = Math.max(0, parseInt(casilla.value, 10) || 0);
     nota.regresaron = regresaron;
     nota.faltan = Math.max(0, nota.piezas - regresaron);
-    nota.estatus = 'devuelta';
+    ponerEstatus(nota, 'devuelta');
 
     if (nota.faltan > 0) { faltantes += nota.faltan; notasCortas += 1; }
   });
@@ -1518,6 +1886,28 @@ function dibujarCorte() {
   document.getElementById('cPorCobrar').textContent = pesos(porCobrar);
   document.getElementById('cMaquila').textContent   = pesos(maquila);
   document.getElementById('cUtilidad').textContent  = pesos(facturado - maquila);
+
+  // Lo que dejaron de anticipo y no volvieron a recoger, contra lo que ya se
+  // le pagó a la maquila por esa ropa
+  const sin = NOTAS.filter(sinRecoger);
+  const anticipo = sin.reduce(function (s, n) { return s + n.pagado; }, 0);
+  const pagadoMaq = sin.reduce(function (s, n) { return s + n.costo; }, 0);
+  const prendas = sin.reduce(function (s, n) { return s + n.piezas; }, 0);
+  const quedo = anticipo - pagadoMaq;
+
+  document.getElementById('sinRecogerCifras').classList.toggle('d-none', sin.length === 0);
+  document.getElementById('btnVerSinRecoger').classList.toggle('d-none', sin.length === 0);
+  const cuantas = sin.length + (sin.length === 1 ? ' nota' : ' notas') +
+                  ' (' + prendas + (prendas === 1 ? ' prenda)' : ' prendas)');
+  document.getElementById('sinRecogerTexto').textContent = sin.length === 0
+    ? 'Nada lleva ' + DIAS_SIN_RECOGER + ' días o más embolsado.'
+    : cuantas + (sin.length === 1 ? ' lleva ' : ' llevan ') + DIAS_SIN_RECOGER +
+      ' días o más embolsada' + (sin.length === 1 ? '.' : 's.');
+  document.getElementById('srAnticipo').textContent = pesos(anticipo);
+  document.getElementById('srCosto').textContent = pesos(pagadoMaq);
+  const celdaQuedo = document.getElementById('srQuedo');
+  celdaQuedo.textContent = (quedo < 0 ? '−' : '') + pesos(Math.abs(quedo));
+  celdaQuedo.className = 'fs-5 fw-bold ' + (quedo < 0 ? 'text-danger' : 'text-body');
 
   const cuerpo = document.getElementById('tablaCorte');
   cuerpo.innerHTML = '';
@@ -1614,7 +2004,7 @@ function imprimirHoja(titulo, armar, clase) {
 
   const fecha = document.createElement('p');
   fecha.className = 'hoja-fecha';
-  fecha.textContent = textoFecha(new Date()) + ' · Sucursal 1';
+  fecha.textContent = textoFecha(new Date()) + ' · ' + nombreSucursal();
   hoja.appendChild(fecha);
 
   armar(hoja);
@@ -1687,6 +2077,10 @@ document.getElementById('btnTicket').addEventListener('click', function () {
 });
 
 // Y el mismo ticket, reimpreso desde una nota guardada
+document.getElementById('btnAvisarNota').addEventListener('click', function () {
+  if (notaAbierta) avisarPorWhatsApp(notaAbierta);
+});
+
 document.getElementById('btnTicketNota').addEventListener('click', function () {
   if (!notaAbierta) return;
   imprimirTicket(notaAbierta);
@@ -1901,6 +2295,45 @@ document.getElementById('btnBorrarTodo').addEventListener('click', function () {
    ------------------------------------------------------------------------- */
 
 const RESPALDO_VERSION = 1;
+
+/* El recordatorio. Un respaldo que nadie se acuerda de bajar no sirve. Si
+   llevan más de una semana sin bajarlo sale un aviso en cualquier pantalla.
+   Se cuenta desde el último respaldo o, si nunca han bajado uno, desde la
+   primera vez que hubo notas: el primer día no se regaña a nadie. */
+
+const LLAVE_RESPALDO = 'tintoreria.ultimoRespaldo';
+const LLAVE_DESDE = 'tintoreria.desde';
+const DIAS_SIN_RESPALDO = 7;
+
+function leerLlave(llave) {
+  try { return localStorage.getItem(llave); } catch (e) { return null; }
+}
+function guardarLlave(llave, valor) {
+  try { localStorage.setItem(llave, valor); } catch (e) { /* sin almacén no hay aviso */ }
+}
+
+function diasSinRespaldo() {
+  if (NOTAS.length === 0) return null;
+  let desde = leerLlave(LLAVE_DESDE);
+  if (!desde) { desde = new Date().toISOString(); guardarLlave(LLAVE_DESDE, desde); }
+  const ultimo = leerLlave(LLAVE_RESPALDO);
+  const base = Math.max(new Date(desde).getTime(), ultimo ? new Date(ultimo).getTime() : 0);
+  return Math.max(0, Math.floor((Date.now() - base) / 86400000));
+}
+
+function pintarAvisoRespaldo() {
+  const dias = diasSinRespaldo();
+  const toca = dias !== null && dias >= DIAS_SIN_RESPALDO;
+  document.getElementById('avisoRespaldoViejo').classList.toggle('d-none', !toca);
+  if (toca) {
+    document.getElementById('textoRespaldoViejo').textContent =
+      'Llevas ' + dias + ' días sin bajar el respaldo. Si la tablet se pierde, se va la libreta.';
+  }
+}
+
+document.getElementById('btnRespaldoAviso').addEventListener('click', function () {
+  document.getElementById('btnRespaldo').click();
+});
 const letreroRespaldo = document.getElementById('avisoRespaldo');
 
 function nombreDeArchivo() {
@@ -1939,6 +2372,8 @@ document.getElementById('btnRespaldo').addEventListener('click', function () {
       : Math.max(1, Math.round(archivo.size / 1024)) + ' KB';
     letreroRespaldo.textContent = NOTAS.length + ' notas y ' + pares.length +
                                   ' imágenes · ' + peso;
+    guardarLlave(LLAVE_RESPALDO, new Date().toISOString());
+    pintarAvisoRespaldo();
     avisar('Respaldo listo. Guárdalo fuera de la tablet.');
   });
 });
@@ -1991,9 +2426,39 @@ document.getElementById('archivoRespaldo').addEventListener('change', function (
           return;
         }
         letreroRespaldo.textContent = NOTAS.length + ' notas restauradas';
+        guardarLlave(LLAVE_RESPALDO, datos.fecha || new Date().toISOString());
+        pintarAvisoRespaldo();
         avisar(entraron
           ? 'Listo, volvieron ' + NOTAS.length + ' notas.'
           : 'Volvieron ' + NOTAS.length + ' notas, pero sin las fotos.');
       });
   });
 });
+
+
+/* -------------------------------------------------------------------------
+   15. EL NOMBRE DE LA TABLET
+   ------------------------------------------------------------------------- */
+
+const campoSucursal = document.getElementById('nombreSucursal');
+try { campoSucursal.value = localStorage.getItem(LLAVE_SUCURSAL) || ''; }
+catch (e) { campoSucursal.value = ''; }
+
+campoSucursal.addEventListener('input', function () {
+  const nombre = campoSucursal.value.trim();
+  try {
+    if (nombre === '') localStorage.removeItem(LLAVE_SUCURSAL);
+    else localStorage.setItem(LLAVE_SUCURSAL, nombre);
+  } catch (e) { /* sin almacén no se guarda, pero se ve */ }
+  pintarSucursal();
+});
+
+
+document.getElementById('btnVerSinRecoger').addEventListener('click', function () {
+  modoTablero = 'lista';
+  loQueBusca = '';
+  document.getElementById('buscarNota').value = '';
+  irA('tablero');
+});
+
+pintarAvisoRespaldo();

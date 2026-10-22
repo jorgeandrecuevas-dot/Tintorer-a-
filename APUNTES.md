@@ -79,9 +79,25 @@ Los cobertores tardan más, así que su fecha de entrega salta un ciclo.
 el mostrador. Lo único que sale del local es el viaje a la maquila. Por eso la
 aplicación no tiene pantalla de ruta.
 
+## Lo que se confirmó el 22 de octubre
+
+- **Merma del anticipo (23).** Es cuando dejan el anticipo y no regresan por
+  la ropa. Al negocio le costó mandarla a la maquila y solo recibió el
+  anticipo, así que no tiene ganancia.
+- **La sábana de una pieza.** Debe cobrarse en $100, no en $70. Se corrigió en la
+  aplicación. La maquila cobra $100 por lavarla, así que en esa pieza no hay
+  ganancia.
+- **Sucursales.** Hoy es una. Quieren abrir otra y se avisará cuando abran.
+
 ## Lo que falta preguntar
 
-1. "Merma del anticipo" (23). ¿Es ropa que nunca recogen, o anticipos que se devuelven?
-2. ¿Quién paga la prenda que la maquila pierde o maltrata? El punto 2 dice que etiquetan para que no se pierda, así que pasa.
-3. La sábana de una pieza se cobra en $70 y cuesta $100 con la maquila. ¿Es error de captura en la hoja de precios o así se está cobrando?
-4. ¿Cuántas sucursales son hoy? El punto 6 dice una tablet por sucursal.
+1. ¿Quién paga la prenda que la maquila pierde o maltrata? Se va a preguntar.
+2. Punto 14. Los apuntes dicen: «A veces vienen ellos a recoger la ropa, pero
+   casi siempre van ellos. El martes a las 7 am. A veces van a la casa del
+   señor a entregarle la ropa.» Se lee como: casi siempre el negocio lleva la
+   ropa a la maquila el martes a las 7, y a veces la maquila pasa por ella.
+   Falta confirmarlo con el dueño.
+3. ¿Cuántos días de embolsada se dan antes de darla por no recogida? La
+   aplicación usa 15.
+4. ¿Les parece cobrar un anticipo que cubra la maquila, o un cargo por
+   almacenaje? Detalle en `MEJORAS.md`.
