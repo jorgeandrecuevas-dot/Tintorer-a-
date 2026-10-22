@@ -40,7 +40,7 @@ Esta parte es lectura de los apuntes, no es lo que dijo el negocio.
 |---|---|
 | Folio automático, `0482` fijo | El número de nota lo escribe él (18) |
 | Captura centrada en escoger prenda del catálogo | La cantidad importa más que el tipo (5) |
-| Pantalla "Ruta del día" con recolecciones a domicilio del cliente | Los apuntes no mencionan ruta a clientes. El viaje del martes es a la maquila (12, 14) |
+| Pantalla "Ruta del día" con recolecciones a domicilio del cliente | No hay entrega a domicilio. Confirmado con el negocio el 22 de octubre. El viaje del martes es a la maquila (12, 14) |
 | Nota sin cobro | Mínimo 50% de anticipo, o pago total (9, 23) |
 | Nota sin observaciones | Hace falta apartado para botón faltante o ropa rota (22) |
 | Nada de firmas | Firma de recibido y de entregado, sin internet (19, 20) |
@@ -73,10 +73,15 @@ sábado        sale otra tanda, regresa el martes
 
 Los cobertores tardan más, así que su fecha de entrega salta un ciclo.
 
+## Lo ya confirmado
+
+**No hay entrega a domicilio al cliente.** El cliente deja y recoge su ropa en
+el mostrador. Lo único que sale del local es el viaje a la maquila. Por eso la
+aplicación no tiene pantalla de ruta.
+
 ## Lo que falta preguntar
 
-1. ¿Hay entrega a domicilio al cliente? Los apuntes solo hablan de ir a la maquila. La descripción que traía el proyecto decía que se recoge y entrega en casa del cliente, y eso no aparece por ningún lado aquí.
-2. "Merma del anticipo" (23). ¿Es ropa que nunca recogen, o anticipos que se devuelven?
-3. ¿Quién paga la prenda que la maquila pierde o maltrata? El punto 2 dice que etiquetan para que no se pierda, así que pasa.
-4. La sábana de una pieza se cobra en $70 y cuesta $100 con la maquila. ¿Es error de captura en la hoja de precios o así se está cobrando?
-5. ¿Cuántas sucursales son hoy? El punto 6 dice una tablet por sucursal.
+1. "Merma del anticipo" (23). ¿Es ropa que nunca recogen, o anticipos que se devuelven?
+2. ¿Quién paga la prenda que la maquila pierde o maltrata? El punto 2 dice que etiquetan para que no se pierda, así que pasa.
+3. La sábana de una pieza se cobra en $70 y cuesta $100 con la maquila. ¿Es error de captura en la hoja de precios o así se está cobrando?
+4. ¿Cuántas sucursales son hoy? El punto 6 dice una tablet por sucursal.

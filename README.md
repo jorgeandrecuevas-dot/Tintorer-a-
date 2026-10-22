@@ -167,11 +167,39 @@ pendiente de confirmar con el dueño.
 
 ## Pendientes
 
-1. **Sincronizar entre sucursales.** Cada tablet guarda lo suyo. El punto 6
-   pide una tablet por sucursal, y hoy no se hablan entre ellas.
-2. **Descargar y borrar notas viejas.** El almacén del navegador se llena, y
-   cuando pasa la aplicación avisa pero no hay a dónde vaciarlo.
-3. **Editar una nota ya guardada.** Hoy solo se avanza de etapa.
-4. **Confirmar con el dueño** las cinco preguntas del final de `APUNTES.md`.
-   La primera es si hay entrega a domicilio al cliente, porque los apuntes
-   solo hablan de ir a la maquila.
+### 1. Las fotos llenan la tablet a la quinta nota
+
+Esto hay que arreglarlo antes de ponerla a trabajar. Está medido en Chrome:
+
+| | |
+|---|---|
+| Una foto, ya achicada a 1000 px y en JPEG al 0.7 | 252 KB |
+| Una firma | 23 KB |
+| Una nota con cuatro fotos y su firma | 1,032 KB |
+| Notas que caben antes de tronar | **4** |
+| Notas que caben si no se guardaran fotos | 19,201 |
+
+El almacén del navegador son unos 5 MB y no se puede subir. La salida es
+guardar las fotos en IndexedDB, que sí crece con el disco, y dejar en el
+almacén chico nada más los datos de la nota.
+
+### 2. Respaldo
+
+Todo vive en una sola tablet. Si se pierde, se moja o alguien le borra los
+datos del navegador, se va la libreta completa del negocio. Hace falta por lo
+menos poder descargar todo a un archivo, y de ahí para arriba un servidor.
+
+### 3. Buscar y corregir notas
+
+El tablero sirve para ver el día. Con 90 notas al mes ya no, y hoy no hay
+forma de buscar por número ni por cliente, ni de corregir una nota mal
+capturada: solo se avanza de etapa.
+
+### 4. Sincronizar entre sucursales
+
+El punto 6 pide una tablet por sucursal y hoy no se hablan. No urge mientras
+usen una sola, pero el corte del punto 8 no va a cuadrar cuando sean dos.
+
+### 5. Confirmar con el dueño
+
+Las cuatro preguntas del final de `APUNTES.md`.
