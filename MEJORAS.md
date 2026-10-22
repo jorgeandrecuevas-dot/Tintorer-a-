@@ -25,7 +25,7 @@ De 23 apuntes hay **20 hechos, 2 a medias y 1 sin hacer.**
 | 11 | Checklist de entregadas y pendientes | Hecho, lista de entregas en el tablero |
 | 12 | Martes, jueves y sábado | Hecho, la fecha de entrega sale sola |
 | 13 | Cobertores tardan más | Hecho, saltan un ciclo |
-| 14 | A veces van ellos, a veces vienen | **Sin hacer.** Falta que el dueño confirme cómo es |
+| 14 | A veces van ellos, a veces vienen | **Sin hacer.** A veces la maquila lleva la ropa a casa del señor. Falta saber si hay que registrar dónde llegó |
 | 15 | El lunes aparta lo que sale el martes | Hecho, Maquila dice qué día sale y se palomea lo apartado |
 | 16 | Imprimir lo capturado y el documento para firmar con la maquila | Hecho |
 | 17 | Tres PDF | **A medias.** Se imprimen desde el navegador y ahí se guarda como PDF. No se genera el archivo directo |

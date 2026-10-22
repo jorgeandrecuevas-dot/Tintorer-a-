@@ -88,15 +88,17 @@ aplicación no tiene pantalla de ruta.
   aplicación. La maquila cobra $100 por lavarla, así que en esa pieza no hay
   ganancia.
 - **Sucursales.** Hoy es una. Quieren abrir otra y se avisará cuando abran.
+- **Punto 14.** Casi siempre el negocio lleva la ropa a la maquila el martes a
+  las 7 am. A veces la maquila pasa por ella. A veces los de la maquila llevan
+  la ropa ya lavada a casa del señor, según cómo se organicen y cuánta ropa
+  haya. Esa ropa no llega al local.
 
 ## Lo que falta preguntar
 
 1. ¿Quién paga la prenda que la maquila pierde o maltrata? Se va a preguntar.
-2. Punto 14. Los apuntes dicen: «A veces vienen ellos a recoger la ropa, pero
-   casi siempre van ellos. El martes a las 7 am. A veces van a la casa del
-   señor a entregarle la ropa.» Se lee como: casi siempre el negocio lleva la
-   ropa a la maquila el martes a las 7, y a veces la maquila pasa por ella.
-   Falta confirmarlo con el dueño.
+2. Punto 14. Cuando la maquila deja la ropa en casa del señor, ¿ahí se
+   cuenta y se embolsa, y de ahí pasa al local? Si importa saber dónde está
+   la ropa, hay que agregar ese dato a la nota.
 3. ¿Cuántos días de embolsada se dan antes de darla por no recogida? La
    aplicación usa 15.
 4. ¿Les parece cobrar un anticipo que cubra la maquila, o un cargo por

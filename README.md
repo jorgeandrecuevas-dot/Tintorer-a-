@@ -273,8 +273,9 @@ llevan.
 
 ### 4. El punto 14
 
-A veces van ellos a la maquila y a veces vienen por la ropa. Falta que el
-dueño confirme cómo es, para saber si cambia algo en pantalla.
+A veces la maquila lleva la ropa ya lavada a casa del señor, y no al local.
+Hoy «De vuelta» no dice dónde está la ropa. Si le importa al dueño, se agrega
+a la nota un dato de dónde llegó.
 
 Lo demás está en [MEJORAS.md](MEJORAS.md): los 23 apuntes uno por uno y los
 tres caminos para seguir.
