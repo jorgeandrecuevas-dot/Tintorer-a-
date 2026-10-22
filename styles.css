@@ -49,53 +49,83 @@ body {
   cursor: crosshair;
 }
 
-/* Los tres documentos que se imprimen. En pantalla no se ven. */
+/* Los documentos que se imprimen. En pantalla no se ven. */
 #hoja {
   display: none;
+}
+
+.hoja-negocio {
+  font-size: 9pt;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #444;
+}
+
+.hoja-fecha {
+  font-size: 9pt;
+  color: #555;
+  margin: 0 0 .9rem;
+  padding-bottom: .5rem;
+  border-bottom: 1.5pt solid #000;
+}
+
+/* Cada apartado con su rótulo, para que no sea una lista suelta */
+.hoja-bloque {
+  margin-bottom: .9rem;
+}
+
+.hoja-rotulo {
+  font-size: 8pt;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #666;
+  padding-bottom: .15rem;
+  margin-bottom: .25rem;
+  border-bottom: .5pt solid #bbb;
 }
 
 .hoja-renglon {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  padding: .15rem 0;
+  padding: .12rem 0;
 }
 
-.hoja-fecha {
-  color: #555;
-  margin-bottom: 1rem;
+/* Los montos alineados por la derecha se comparan de un vistazo */
+.hoja-renglon span:last-child {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hoja-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: .5rem;
+  padding-top: .4rem;
+  border-top: 1.5pt solid #000;
+  font-size: 13pt;
+  font-weight: bold;
+}
+
+.hoja-total span:last-child {
+  font-variant-numeric: tabular-nums;
 }
 
 .hoja-obs {
-  margin-top: 1rem;
-  padding: .5rem;
-  border: 1px solid #000;
+  margin-top: .9rem;
+  padding: .45rem .5rem;
+  border: 1pt solid #000;
+  font-size: 10pt;
 }
 
 .hoja-firma {
-  margin-top: 3rem;
-  padding-top: .4rem;
-  border-top: 1px solid #000;
+  margin-top: 2.6rem;
+  padding-top: .3rem;
+  border-top: 1pt solid #000;
   width: 60%;
-  font-size: .85rem;
+  font-size: 9pt;
   color: #555;
-}
-
-@media print {
-  /* El fondo gris de la pantalla en papel solo gasta tinta */
-  body.imprimiendo { background: #fff; }
-  body.imprimiendo > *:not(#hoja) { display: none !important; }
-  body.imprimiendo #hoja {
-    display: block;
-    font-family: Arial, sans-serif;
-    font-size: 11pt;
-    max-width: 10cm;
-  }
-  /* Las etiquetas sí usan toda la hoja. Va aquí porque si no, la regla de
-     arriba le gana por ser más específica y las deja en 10 cm. */
-  body.imprimiendo #hoja.ancha { max-width: none; }
-  body.imprimiendo #hoja h2 { font-size: 14pt; margin: 0 0 .2rem; }
-  @page { margin: 1.5cm; }
 }
 
 /* La hoja de etiquetas: una por prenda, para pegarlas antes de que salga la
@@ -134,4 +164,69 @@ body {
   color: #333;
   display: flex;
   justify-content: space-between;
+}
+
+/* La lista de prendas del buscador. Se le pone tope de alto para que el
+   teclado del mostrador no empuje el resto de la pantalla fuera de vista. */
+.lista-prendas {
+  max-height: 15rem;
+  overflow-y: auto;
+}
+
+.lista-prendas .list-group-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: .5rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.lista-prendas .de-donde {
+  font-size: .75rem;
+  color: #6c757d;
+}
+
+.lista-prendas .cuanto {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Las notas del tablero se tocan para abrirlas */
+.nota-tocable {
+  cursor: pointer;
+}
+
+.nota-tocable:hover,
+.nota-tocable:focus-visible {
+  background: #eef4ff;
+}
+
+/* Las firmas guardadas se ven sobre blanco aunque sean PNG transparentes */
+#edFirmas img {
+  background: #fff;
+  width: 100%;
+}
+
+/* Lo que sale en papel. Mientras se imprime, la pantalla se esconde y solo
+   queda la hoja. */
+@media print {
+  /* El fondo gris de la pantalla en papel solo gasta tinta */
+  body.imprimiendo { background: #fff; }
+  body.imprimiendo > *:not(#hoja) { display: none !important; }
+  body.imprimiendo #hoja {
+    display: block;
+    font-family: Arial, sans-serif;
+    font-size: 11pt;
+    max-width: 10cm;
+  }
+  /* Las etiquetas sí usan toda la hoja. Va aquí porque si no, la regla de
+     arriba le gana por ser más específica y las deja en 10 cm. */
+  body.imprimiendo #hoja.ancha { max-width: none; }
+  body.imprimiendo #hoja h2 {
+    font-size: 15pt;
+    margin: 0 0 .15rem;
+    letter-spacing: -.01em;
+  }
+  @page { margin: 1.5cm; }
 }

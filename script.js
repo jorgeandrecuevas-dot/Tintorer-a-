@@ -353,10 +353,11 @@ function conId(n) {
 
 let NOTAS = leerNotas().map(conId);
 
-// La primera vez se siembran unas notas para que el tablero no arranque vacío
-if (NOTAS.length === 0) {
+// La aplicación arranca vacía. Las notas de ejemplo se cargan a propósito
+// desde el Corte, cuando se quiere enseñar cómo se ve trabajando.
+function notasDeEjemplo() {
   const hoy = new Date();
-  NOTAS = [
+  return [
     { folio: '0479', cliente: 'Carmen Ruiz',  piezas: 1, total: 230, costo: 120,
       pagado: 115, saldo: 115, estatus: 'maquila',   detalle: 'Edredón queen' },
     { folio: '0480', cliente: 'Pedro Lara',   piezas: 3, total: 210, costo: 120,
@@ -368,9 +369,9 @@ if (NOTAS.length === 0) {
   ].map(function (n) {
     n.entrega = textoFecha(fechaEntrega(hoy, false));
     n.observaciones = '';
+    n.fotos = [];
     return conId(n);
   });
-  escribirNotas(NOTAS);
 }
 
 
@@ -378,10 +379,9 @@ if (NOTAS.length === 0) {
    5. CAPTURA DE LA NOTA
    ------------------------------------------------------------------------- */
 
-const selCategoria   = document.getElementById('categoria');
-const selPrenda      = document.getElementById('prenda');
+const inpBuscar      = document.getElementById('buscarPrenda');
+const listaResultados = document.getElementById('resultados');
 const inpCantidad    = document.getElementById('cantidad');
-const btnPrenda      = document.getElementById('btnAgregarPrenda');
 const listaPrendas   = document.getElementById('listaPrendas');
 const inpKilos       = document.getElementById('kilos');
 const bloquePiezas   = document.getElementById('bloquePiezas');
@@ -391,7 +391,7 @@ const radioLavan     = document.getElementById('servLavanderia');
 const inpCliente     = document.getElementById('nombreCliente');
 const inpFolio       = document.getElementById('folio');
 const inpObserva     = document.getElementById('observaciones');
-const cobroAnticipo  = document.getElementById('cobroAnticipo');
+const inpRecibido    = document.getElementById('recibido');
 const resumenCliente = document.getElementById('resumenCliente');
 
 let prendas = [];   // lo que lleva la nota hasta ahora
@@ -418,49 +418,20 @@ inpCliente.addEventListener('input', function () {
   resumenCliente.textContent = inpCliente.value.trim() || 'Sin nombre';
 });
 
-// Llena el menú de categorías
-CATEGORIAS.forEach(function (c) {
-  const opcion = document.createElement('option');
-  opcion.value = c.id;
-  opcion.textContent = c.nombre;
-  selCategoria.appendChild(opcion);
-});
+/* El buscador de prendas.
 
-function llenarPrendas() {
-  selPrenda.innerHTML = '';
-  CATALOGO
-    .filter(function (p) { return p.cat === selCategoria.value; })
-    .forEach(function (p) {
-      const opcion = document.createElement('option');
-      opcion.value = p.nombre;
-      opcion.textContent = p.nombre;
-      selPrenda.appendChild(opcion);
-    });
-  mostrarPrecio();
+   El menú desplegable con las 56 piezas no servía: había que bajar la lista
+   entera para encontrar una camisa. Aquí se escribe y se filtra. Los acentos
+   no cuentan, porque en el mostrador nadie los va a teclear. */
+
+const NOMBRE_CATEGORIA = {};
+CATEGORIAS.forEach(function (c) { NOMBRE_CATEGORIA[c.id] = c.nombre; });
+
+function sinAcentos(texto) {
+  return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
-// El precio va debajo del menú y no dentro de la opción: en la columna
-// angosta de la computadora el texto se cortaba a media palabra.
-function mostrarPrecio() {
-  const pieza = CATALOGO.find(function (p) { return p.nombre === selPrenda.value; });
-  document.getElementById('precioPieza').textContent =
-    pieza ? pesos(pieza.precio) + ' por pieza' : '';
-}
-
-selCategoria.addEventListener('change', llenarPrendas);
-selPrenda.addEventListener('change', mostrarPrecio);
-llenarPrendas();
-
-// Los más y menos son para capturar de pie, con el dedo, sin teclado
-document.getElementById('masCantidad').addEventListener('click', function () {
-  inpCantidad.value = (parseInt(inpCantidad.value, 10) || 0) + 1;
-});
-document.getElementById('menosCantidad').addEventListener('click', function () {
-  inpCantidad.value = Math.max(1, (parseInt(inpCantidad.value, 10) || 2) - 1);
-});
-
-btnPrenda.addEventListener('click', function () {
-  const pieza = CATALOGO.find(function (p) { return p.nombre === selPrenda.value; });
+function agregarPrenda(pieza) {
   const cantidad = parseInt(inpCantidad.value, 10);
   if (!pieza || !cantidad || cantidad < 1) return;
 
@@ -468,7 +439,62 @@ btnPrenda.addEventListener('click', function () {
                  precio: pieza.precio, costo: pieza.costo });
   inpCantidad.value = 1;
   dibujarNota();
+}
+
+function dibujarResultados() {
+  const busca = sinAcentos(inpBuscar.value.trim());
+  listaResultados.innerHTML = '';
+
+  const encontradas = CATALOGO.filter(function (p) {
+    return busca === '' || sinAcentos(p.nombre).indexOf(busca) !== -1;
+  });
+
+  if (encontradas.length === 0) {
+    const nada = document.createElement('div');
+    nada.className = 'list-group-item text-secondary';
+    nada.textContent = 'Ninguna prenda se llama así.';
+    listaResultados.appendChild(nada);
+    return;
+  }
+
+  encontradas.forEach(function (p) {
+    const renglon = document.createElement('button');
+    renglon.type = 'button';
+    renglon.className = 'list-group-item list-group-item-action';
+    renglon.setAttribute('role', 'listitem');
+
+    const izq = document.createElement('span');
+    const nombre = document.createElement('div');
+    nombre.textContent = p.nombre;
+    const donde = document.createElement('div');
+    donde.className = 'de-donde';
+    donde.textContent = NOMBRE_CATEGORIA[p.cat] || p.cat;
+    izq.appendChild(nombre);
+    izq.appendChild(donde);
+
+    const cuanto = document.createElement('span');
+    cuanto.className = 'cuanto';
+    cuanto.textContent = pesos(p.precio);
+
+    renglon.appendChild(izq);
+    renglon.appendChild(cuanto);
+    renglon.addEventListener('click', function () { agregarPrenda(p); });
+
+    listaResultados.appendChild(renglon);
+  });
+}
+
+inpBuscar.addEventListener('input', dibujarResultados);
+
+// Enter agrega la primera de la lista: así se captura sin soltar el teclado
+inpBuscar.addEventListener('keydown', function (evento) {
+  if (evento.key !== 'Enter') return;
+  evento.preventDefault();
+  const primera = listaResultados.querySelector('button');
+  if (primera) primera.click();
 });
+
+dibujarResultados();
 
 function cambiarServicio() {
   const porKilo = radioLavan.checked;
@@ -479,8 +505,31 @@ function cambiarServicio() {
 radioTinto.addEventListener('change', cambiarServicio);
 radioLavan.addEventListener('change', cambiarServicio);
 inpKilos.addEventListener('input', dibujarNota);
-cobroAnticipo.addEventListener('change', dibujarNota);
-document.getElementById('cobroTotal').addEventListener('change', dibujarNota);
+/* El cobro. Los botones son atajos que llenan el campo; en cuanto alguien
+   escribe un monto, mandan sus dedos y los atajos dejan de recalcular. */
+let modoCobro = 'mitad';
+
+function marcarAtajo() {
+  [['atajoNada','nada'], ['atajoMitad','mitad'], ['atajoTodo','todo']].forEach(function (par) {
+    document.getElementById(par[0]).classList.toggle('active', modoCobro === par[1]);
+  });
+}
+
+function ponerAtajo(modo) {
+  modoCobro = modo;
+  marcarAtajo();
+  dibujarNota();
+}
+
+document.getElementById('atajoNada').addEventListener('click', function () { ponerAtajo('nada'); });
+document.getElementById('atajoMitad').addEventListener('click', function () { ponerAtajo('mitad'); });
+document.getElementById('atajoTodo').addEventListener('click', function () { ponerAtajo('todo'); });
+
+inpRecibido.addEventListener('input', function () {
+  modoCobro = 'manual';
+  marcarAtajo();
+  dibujarNota();
+});
 
 // Lo que la nota vale ahora mismo. Lo usan la pantalla y el guardado.
 function cuentaNota() {
@@ -505,7 +554,15 @@ function cuentaNota() {
     });
   }
 
-  const pagado = cobroAnticipo.checked ? precio / 2 : precio;
+  let pagado;
+  if (modoCobro === 'nada')       pagado = 0;
+  else if (modoCobro === 'mitad') pagado = Math.round(precio / 2);
+  else if (modoCobro === 'todo')  pagado = precio;
+  else                            pagado = Math.max(0, parseFloat(inpRecibido.value) || 0);
+
+  // Nadie puede dejar más de lo que vale la nota
+  pagado = Math.min(pagado, precio);
+
   return { precio: precio, costo: costo, piezas: piezas, renglones: renglones,
            pagado: pagado, saldo: precio - pagado,
            entrega: fechaEntrega(new Date(), tardaMas) };
@@ -522,8 +579,14 @@ function dibujarNota() {
   document.getElementById('totalPiezas').textContent  = c.piezas;
   document.getElementById('fechaEntrega').textContent = textoFecha(c.entrega);
   document.getElementById('total').textContent        = pesos(c.precio);
-  document.getElementById('pagado').textContent       = pesos(c.pagado);
   document.getElementById('saldo').textContent        = pesos(c.saldo);
+
+  // Si el atajo mandó, se refleja en el campo. Si escribieron, no se toca.
+  if (modoCobro !== 'manual') inpRecibido.value = c.pagado;
+
+  // El punto 23 pide mínimo el 50%. No se bloquea, se avisa.
+  const corto = c.precio > 0 && c.pagado < c.precio / 2;
+  document.getElementById('avisoAnticipo').classList.toggle('d-none', !corto);
   document.getElementById('costo').textContent        = pesos(c.costo);
   document.getElementById('ganancia').textContent     = pesos(c.precio - c.costo);
 }
@@ -682,6 +745,8 @@ document.getElementById('btnGuardar').addEventListener('click', function () {
   aviso.classList.remove('d-none');
   resumenCliente.textContent = 'Sin nombre';
   firmaRecibido.limpiar();
+  modoCobro = 'mitad';
+  marcarAtajo();
   dibujarNota();
 
   avisar('Nota ' + folio + ' guardada.');
@@ -695,7 +760,14 @@ document.getElementById('btnGuardar').addEventListener('click', function () {
 
 function tarjetaNota(n) {
   const li = document.createElement('li');
-  li.className = 'list-group-item';
+  li.className = 'list-group-item nota-tocable';
+  li.tabIndex = 0;
+  li.setAttribute('role', 'button');
+  li.setAttribute('aria-label', 'Ver la nota ' + n.folio + ' de ' + n.cliente);
+  li.addEventListener('click', function () { abrirNota(n.id); });
+  li.addEventListener('keydown', function (evento) {
+    if (evento.key === 'Enter' || evento.key === ' ') { evento.preventDefault(); abrirNota(n.id); }
+  });
 
   const titulo = document.createElement('div');
   titulo.className = 'fw-semibold';
@@ -733,7 +805,10 @@ function tarjetaNota(n) {
     const entregar = document.createElement('button');
     entregar.className = 'btn btn-sm btn-primary w-100 mt-2';
     entregar.textContent = n.saldo > 0 ? 'Cobrar y entregar' : 'Entregar';
-    entregar.addEventListener('click', function () { abrirEntrega(n.id); });
+    entregar.addEventListener('click', function (evento) {
+      evento.stopPropagation();        // si no, también abre el cuadro de la nota
+      abrirEntrega(n.id);
+    });
     li.appendChild(entregar);
   }
   return li;
@@ -742,6 +817,11 @@ function tarjetaNota(n) {
 function dibujarTablero() {
   const cajon = document.getElementById('columnas');
   cajon.innerHTML = '';
+
+  const vacio = NOTAS.length === 0;
+  document.getElementById('tableroVacio').classList.toggle('d-none', !vacio);
+  cajon.classList.toggle('d-none', vacio);
+  if (vacio) return;
 
   ETAPAS.forEach(function (etapa) {
     const deEsta = NOTAS.filter(function (n) { return n.estatus === etapa.id; });
@@ -773,6 +853,136 @@ function dibujarTablero() {
     cajon.appendChild(col);
   });
 }
+
+
+/* -------------------------------------------------------------------------
+   8.1 VER Y CORREGIR UNA NOTA
+
+   Se abre tocándola en el tablero. Hasta ahora una nota mal capturada se
+   quedaba mal para siempre: solo se podía avanzar de etapa.
+   ------------------------------------------------------------------------- */
+
+const cuadroNota = document.getElementById('modalNota');
+let notaAbierta = null;
+
+// El menú de etapas se llena una vez con las mismas cinco del tablero
+const selEstatus = document.getElementById('edEstatus');
+ETAPAS.forEach(function (e) {
+  const opcion = document.createElement('option');
+  opcion.value = e.id;
+  opcion.textContent = e.nombre;
+  selEstatus.appendChild(opcion);
+});
+
+function miniatura(src, alto) {
+  const col = document.createElement('div');
+  col.className = 'col';
+  const img = document.createElement('img');
+  img.src = src;
+  img.alt = '';
+  img.className = 'img-fluid rounded border';
+  if (alto) img.style.background = '#fff';
+  col.appendChild(img);
+  return col;
+}
+
+function pintarSaldoEditado() {
+  if (!notaAbierta) return;
+  const recibido = Math.min(notaAbierta.total,
+    Math.max(0, parseFloat(document.getElementById('edRecibido').value) || 0));
+  document.getElementById('edSaldo').textContent = pesos(notaAbierta.total - recibido);
+}
+
+function abrirNota(id) {
+  notaAbierta = NOTAS.find(function (n) { return n.id === id; });
+  if (!notaAbierta) return;
+  const n = notaAbierta;
+
+  document.getElementById('tituloNota').textContent = 'Nota ' + n.folio;
+  document.getElementById('edFolio').value = n.folio || '';
+  document.getElementById('edCliente').value = n.cliente || '';
+  document.getElementById('edTelefono').value = n.telefono || '';
+  document.getElementById('edObserva').value = n.observaciones || '';
+  selEstatus.value = n.estatus;
+
+  document.getElementById('edDetalle').textContent = n.detalle || 'Sin desglose';
+  document.getElementById('edPiezas').textContent = n.piezas;
+  document.getElementById('edEntrega').textContent = n.entrega || '—';
+  document.getElementById('edTotal').textContent = pesos(n.total);
+  document.getElementById('edRecibido').value = n.pagado;
+  document.getElementById('edSaldo').textContent = pesos(n.saldo);
+
+  const hayFaltantes = n.faltan > 0;
+  document.getElementById('edFilaFaltan').classList.toggle('d-none', !hayFaltantes);
+  if (hayFaltantes) document.getElementById('edFaltan').textContent = n.faltan;
+
+  const cajaFotos = document.getElementById('edFotos');
+  cajaFotos.innerHTML = '';
+  (n.fotos || []).forEach(function (f) { cajaFotos.appendChild(miniatura(f)); });
+  document.getElementById('edBloqueFotos')
+    .classList.toggle('d-none', !(n.fotos && n.fotos.length));
+
+  const cajaFirmas = document.getElementById('edFirmas');
+  cajaFirmas.innerHTML = '';
+  [['firmaRecibido', 'De recibido'], ['firmaEntrega', 'De entregado']].forEach(function (par) {
+    if (!n[par[0]]) return;
+    const col = document.createElement('div');
+    col.className = 'col-6';
+    const pie = document.createElement('div');
+    pie.className = 'small text-secondary';
+    pie.textContent = par[1];
+    const marco = miniatura(n[par[0]], true);
+    marco.className = '';
+    col.appendChild(marco);
+    col.appendChild(pie);
+    cajaFirmas.appendChild(col);
+  });
+  document.getElementById('edBloqueFirmas')
+    .classList.toggle('d-none', cajaFirmas.children.length === 0);
+
+  bootstrap.Modal.getOrCreateInstance(cuadroNota).show();
+}
+
+document.getElementById('edRecibido').addEventListener('input', pintarSaldoEditado);
+
+document.getElementById('btnGuardarNota').addEventListener('click', function () {
+  if (!notaAbierta) return;
+
+  const folio = document.getElementById('edFolio').value.trim();
+  if (folio === '') { avisar('La nota necesita su número.'); return; }
+
+  notaAbierta.folio = folio;
+  notaAbierta.cliente = document.getElementById('edCliente').value.trim() || 'Sin nombre';
+  notaAbierta.telefono = document.getElementById('edTelefono').value.trim();
+  notaAbierta.observaciones = document.getElementById('edObserva').value.trim();
+  notaAbierta.estatus = selEstatus.value;
+
+  const recibido = Math.min(notaAbierta.total,
+    Math.max(0, parseFloat(document.getElementById('edRecibido').value) || 0));
+  notaAbierta.pagado = recibido;
+  notaAbierta.saldo = notaAbierta.total - recibido;
+
+  if (!escribirNotas(NOTAS)) { avisar('No se pudo guardar: ya no cabe en la tablet.'); return; }
+
+  bootstrap.Modal.getOrCreateInstance(cuadroNota).hide();
+  dibujarTablero();
+  avisar('Nota ' + notaAbierta.folio + ' corregida.');
+  notaAbierta = null;
+});
+
+document.getElementById('btnBorrarNota').addEventListener('click', function () {
+  if (!notaAbierta) return;
+  const seguro = window.confirm('Se va a borrar la nota ' + notaAbierta.folio +
+    ' de ' + notaAbierta.cliente + '.\n\nEsto no se puede deshacer. ¿Seguro?');
+  if (!seguro) return;
+
+  NOTAS = NOTAS.filter(function (n) { return n.id !== notaAbierta.id; });
+  escribirNotas(NOTAS);
+  bootstrap.Modal.getOrCreateInstance(cuadroNota).hide();
+  dibujarTablero();
+  avisar('Nota borrada.');
+  notaAbierta = null;
+});
 
 
 /* -------------------------------------------------------------------------
@@ -1030,16 +1240,49 @@ function renglonHoja(izquierda, derecha, fuerte) {
   return d;
 }
 
+function bloqueHoja(rotulo, renglones) {
+  const bloque = document.createElement('div');
+  bloque.className = 'hoja-bloque';
+  if (rotulo) {
+    const r = document.createElement('div');
+    r.className = 'hoja-rotulo';
+    r.textContent = rotulo;
+    bloque.appendChild(r);
+  }
+  renglones.forEach(function (x) { bloque.appendChild(x); });
+  return bloque;
+}
+
+function totalHoja(etiqueta, monto) {
+  const d = document.createElement('div');
+  d.className = 'hoja-total';
+  const a = document.createElement('span');
+  a.textContent = etiqueta;
+  const b = document.createElement('span');
+  b.textContent = monto;
+  d.appendChild(a);
+  d.appendChild(b);
+  return d;
+}
+
 function imprimirHoja(titulo, armar, clase) {
   hoja.className = clase || '';
   hoja.innerHTML = '';
+
+  const negocio = document.createElement('div');
+  negocio.className = 'hoja-negocio';
+  negocio.textContent = 'Tintorería y lavandería';
+  hoja.appendChild(negocio);
+
   const h = document.createElement('h2');
   h.textContent = titulo;
   hoja.appendChild(h);
+
   const fecha = document.createElement('p');
   fecha.className = 'hoja-fecha';
   fecha.textContent = textoFecha(new Date()) + ' · Sucursal 1';
   hoja.appendChild(fecha);
+
   armar(hoja);
   document.body.classList.add('imprimiendo');
   // Se quita cuando el navegador termina. Quitarla justo después de print()
@@ -1051,29 +1294,37 @@ function imprimirHoja(titulo, armar, clase) {
   window.print();
 }
 
-// Documento 1: el ticket del cliente
-document.getElementById('btnTicket').addEventListener('click', function () {
-  const c = cuentaNota();
-  if (c.piezas === 0) { avisar('La nota no tiene prendas.'); return; }
-
+// Documento 1: el ticket del cliente. Se arma igual venga del formulario
+// que de una nota ya guardada que se abrió para reimprimirla.
+function imprimirTicket(datos) {
   imprimirHoja('Ticket de cliente', function (caja) {
-    caja.appendChild(renglonHoja('Nota', inpFolio.value.trim() || 'sin número'));
-    caja.appendChild(renglonHoja('Cliente', inpCliente.value.trim() || 'Sin nombre'));
-    caja.appendChild(renglonHoja('Entrega', textoFecha(c.entrega)));
-    caja.appendChild(document.createElement('hr'));
-    c.renglones.forEach(function (r) {
-      caja.appendChild(renglonHoja(r.texto, pesos(r.monto)));
-    });
-    caja.appendChild(document.createElement('hr'));
-    caja.appendChild(renglonHoja('Piezas', String(c.piezas)));
-    caja.appendChild(renglonHoja('Total', pesos(c.precio), true));
-    caja.appendChild(renglonHoja('Recibido', pesos(c.pagado)));
-    caja.appendChild(renglonHoja('Saldo', pesos(c.saldo), true));
+    caja.appendChild(bloqueHoja('Nota', [
+      renglonHoja('Número', datos.folio || 'sin número'),
+      renglonHoja('Cliente', datos.cliente || 'Sin nombre'),
+      renglonHoja('Se entrega', datos.entrega)
+    ]));
 
-    if (inpObserva.value.trim()) {
+    const prendas = [];
+    if (datos.renglones && datos.renglones.length) {
+      datos.renglones.forEach(function (r) {
+        prendas.push(renglonHoja(r.texto, pesos(r.monto)));
+      });
+    } else if (datos.detalle) {
+      prendas.push(renglonHoja(datos.detalle, ''));
+    }
+    prendas.push(renglonHoja('Piezas', String(datos.piezas)));
+    caja.appendChild(bloqueHoja('Lo que dejó', prendas));
+
+    caja.appendChild(bloqueHoja('Cuenta', [
+      renglonHoja('Total', pesos(datos.total)),
+      renglonHoja('Recibido', pesos(datos.pagado))
+    ]));
+    caja.appendChild(totalHoja('Saldo', pesos(datos.saldo)));
+
+    if (datos.observaciones) {
       const obs = document.createElement('p');
       obs.className = 'hoja-obs';
-      obs.textContent = 'Observaciones: ' + inpObserva.value.trim();
+      obs.textContent = 'Observaciones: ' + datos.observaciones;
       caja.appendChild(obs);
     }
 
@@ -1082,26 +1333,54 @@ document.getElementById('btnTicket').addEventListener('click', function () {
     firma.textContent = 'Firma de recibido';
     caja.appendChild(firma);
   });
+}
+
+document.getElementById('btnTicket').addEventListener('click', function () {
+  const c = cuentaNota();
+  if (c.piezas === 0) { avisar('La nota no tiene prendas.'); return; }
+
+  imprimirTicket({
+    folio: inpFolio.value.trim(),
+    cliente: inpCliente.value.trim(),
+    entrega: textoFecha(c.entrega),
+    renglones: c.renglones,
+    piezas: c.piezas,
+    total: c.precio,
+    pagado: c.pagado,
+    saldo: c.saldo,
+    observaciones: inpObserva.value.trim()
+  });
 });
 
-// Documento 2: la nota de la maquila
+// Y el mismo ticket, reimpreso desde una nota guardada
+document.getElementById('btnTicketNota').addEventListener('click', function () {
+  if (!notaAbierta) return;
+  imprimirTicket(notaAbierta);
+});
+
+// Documento 2: la nota que se firma de entrega y recibo con la maquila
 document.getElementById('btnNotaMaquila').addEventListener('click', function () {
   const envio = porEnviar();
   if (envio.length === 0) { avisar('No hay notas para enviar.'); return; }
 
   imprimirHoja('Nota de maquila', function (caja) {
-    caja.appendChild(renglonHoja('Regresa', textoFecha(regresoDe(proximaSalida(new Date())))));
-    caja.appendChild(document.createElement('hr'));
-    envio.forEach(function (n) {
-      caja.appendChild(renglonHoja(
-        n.folio + ' · ' + n.cliente,
-        n.piezas + (n.piezas === 1 ? ' pieza' : ' piezas')));
-    });
-    caja.appendChild(document.createElement('hr'));
-    caja.appendChild(renglonHoja('Prendas que van',
-      String(envio.reduce(function (s, n) { return s + n.piezas; }, 0)), true));
-    caja.appendChild(renglonHoja('Se paga',
-      pesos(envio.reduce(function (s, n) { return s + n.costo; }, 0)), true));
+    caja.appendChild(bloqueHoja('Envío', [
+      renglonHoja('Sale', textoFecha(proximaSalida(new Date()))),
+      renglonHoja('Regresa', textoFecha(regresoDe(proximaSalida(new Date())))),
+      renglonHoja('Notas', String(envio.length))
+    ]));
+
+    caja.appendChild(bloqueHoja('Qué va', envio.map(function (n) {
+      return renglonHoja(n.folio + ' · ' + n.cliente,
+        n.piezas + (n.piezas === 1 ? ' pieza' : ' piezas'));
+    })));
+
+    caja.appendChild(bloqueHoja('Cuenta', [
+      renglonHoja('Prendas que van',
+        String(envio.reduce(function (s, n) { return s + n.piezas; }, 0)))
+    ]));
+    caja.appendChild(totalHoja('Se le paga',
+      pesos(envio.reduce(function (s, n) { return s + n.costo; }, 0))));
 
     const firma = document.createElement('div');
     firma.className = 'hoja-firma';
@@ -1161,22 +1440,37 @@ document.getElementById('btnConteo').addEventListener('click', function () {
     const facturado = NOTAS.reduce(function (s, n) { return s + n.total;  }, 0);
     const cobrado   = NOTAS.reduce(function (s, n) { return s + n.pagado; }, 0);
     const maquila   = NOTAS.reduce(function (s, n) { return s + n.costo;  }, 0);
+    const piezas    = NOTAS.reduce(function (s, n) { return s + n.piezas; }, 0);
 
-    caja.appendChild(renglonHoja('Notas', String(NOTAS.length)));
-    caja.appendChild(renglonHoja('Piezas',
-      String(NOTAS.reduce(function (s, n) { return s + n.piezas; }, 0))));
-    caja.appendChild(document.createElement('hr'));
-    caja.appendChild(renglonHoja('Facturado', pesos(facturado)));
-    caja.appendChild(renglonHoja('Cobrado', pesos(cobrado)));
-    caja.appendChild(renglonHoja('Por cobrar', pesos(facturado - cobrado)));
-    caja.appendChild(renglonHoja('Pagado a maquila', pesos(maquila)));
-    caja.appendChild(document.createElement('hr'));
-    caja.appendChild(renglonHoja('Utilidad', pesos(facturado - maquila), true));
+    caja.appendChild(bloqueHoja('Movimiento', [
+      renglonHoja('Notas', String(NOTAS.length)),
+      renglonHoja('Piezas', String(piezas))
+    ]));
+
+    // Dónde está parada la ropa hoy
+    caja.appendChild(bloqueHoja('Por etapa', ETAPAS.map(function (e) {
+      const cuantas = NOTAS.filter(function (n) { return n.estatus === e.id; }).length;
+      return renglonHoja(e.nombre, String(cuantas));
+    })));
+
+    caja.appendChild(bloqueHoja('Entró', [
+      renglonHoja('Facturado', pesos(facturado)),
+      renglonHoja('Cobrado', pesos(cobrado)),
+      renglonHoja('Por cobrar', pesos(facturado - cobrado))
+    ]));
+
+    caja.appendChild(bloqueHoja('Salió', [
+      renglonHoja('Pagado a maquila', pesos(maquila))
+    ]));
+
+    caja.appendChild(totalHoja('Utilidad', pesos(facturado - maquila)));
+
+    const firma = document.createElement('div');
+    firma.className = 'hoja-firma';
+    firma.textContent = 'Revisó';
+    caja.appendChild(firma);
   });
 });
-
-
-dibujarTablero();
 
 
 /* -------------------------------------------------------------------------
@@ -1220,3 +1514,41 @@ if ('serviceWorker' in navigator) {
   });
 }
 marcarEstado();
+
+
+/* -------------------------------------------------------------------------
+   13. EMPEZAR DE CERO O CARGAR EJEMPLOS
+
+   La aplicación arranca vacía: quien la abre por primera vez no tiene por qué
+   encontrarse notas de gente que no existe. Los ejemplos se cargan a mano
+   cuando hay que enseñarla.
+   ------------------------------------------------------------------------- */
+
+document.getElementById('btnEjemplos').addEventListener('click', function () {
+  const ejemplos = notasDeEjemplo();
+  const nuevas = ejemplos.filter(function (e) {
+    return !NOTAS.some(function (n) { return n.folio === e.folio; });
+  });
+
+  if (nuevas.length === 0) { avisar('Los ejemplos ya están cargados.'); return; }
+
+  NOTAS = NOTAS.concat(nuevas);
+  escribirNotas(NOTAS);
+  dibujarCorte();
+  avisar('Se cargaron ' + nuevas.length + ' notas de ejemplo.');
+});
+
+document.getElementById('btnBorrarTodo').addEventListener('click', function () {
+  if (NOTAS.length === 0) { avisar('No hay nada que borrar.'); return; }
+
+  // Se borra la libreta completa del negocio: hay que preguntar
+  const seguro = window.confirm(
+    'Se van a borrar las ' + NOTAS.length + ' notas guardadas en esta tablet.\n\n' +
+    'Esto no se puede deshacer. ¿Seguro?');
+  if (!seguro) return;
+
+  NOTAS = [];
+  escribirNotas(NOTAS);
+  dibujarCorte();
+  avisar('Listo, la tablet quedó en cero.');
+});

@@ -31,6 +31,9 @@ Se navega con el menú. En computadora es una barra lateral fija; abajo de
 - La cantidad va primero y en grande, con botones de más y menos para
   capturar de pie. Para la maquila pesa más cuántas prendas van que de qué
   tipo son.
+- **Buscador de prendas con lupa.** Son 56 piezas y bajar una lista así de
+  larga con el cliente enfrente tarda. Se escribe el nombre y sale. No pide
+  acentos: «sabana» encuentra «Sábana».
 - **Observaciones** de cómo llegó la prenda: botón que falta, rotura. Es lo
   que se reclama después.
 - **Foto con la cámara**, que es como se toma en el mostrador. La foto se
@@ -39,7 +42,10 @@ Se navega con el menú. En computadora es una barra lateral fija; abajo de
   campo para pegar una dirección sigue ahí: es el requisito de la Actividad 1.
 - **Firma del cliente** en la pantalla. No usa red ni biblioteca, y aguanta
   que giren la tablet.
-- **Cobro** con anticipo del 50% o pago total, y el saldo a la vista.
+- **El cobro se escribe.** Hay tres atajos (nada, mitad, todo) y abajo el
+  campo del monto. El cliente da lo que trae, no siempre la mitad exacta.
+  Si deja menos del 50% la pantalla lo avisa, y no deja recibir más de lo
+  que vale la nota.
 - La **fecha de entrega se calcula sola** con el ciclo de la maquila.
 
 ### 2. Tablero
@@ -49,6 +55,11 @@ Se navega con el menú. En computadora es una barra lateral fija; abajo de
 Cinco etapas: recibida, en maquila, de vuelta, embolsada y entregada. Las
 notas con saldo traen su marca, las observaciones se ven desde aquí, y lo
 que no regresó completo de la maquila sale marcado en rojo.
+
+**Toca una nota y se abre.** Ahí se corrige el número, el cliente, el
+teléfono, las observaciones, la etapa y lo recibido. Se ven sus fotos y sus
+firmas, se reimprime el ticket y se borra la nota. En el mostrador se teclea
+mal y antes no había manera de arreglarlo.
 
 ### 3. Maquila
 
@@ -145,9 +156,10 @@ Entra a la liga de arriba. También abre con doble clic en `index.html`, pero
 así no queda guardada en el aparato: el service worker necesita que la página
 venga de un servidor.
 
-Las notas se guardan en el navegador y siguen ahí al recargar. Para empezar
-de cero: herramientas de desarrollador, Application, Local Storage, borrar
-`tintoreria.notas`.
+La aplicación abre vacía. En la pantalla de **Corte** hay dos botones para
+probarla: **Cargar notas de ejemplo** mete 4 notas de muestra y **Borrar
+todo** deja la tablet limpia. Las notas que captures se guardan en el navegador y siguen
+ahí al recargar.
 
 ## Sobre los precios
 
@@ -189,11 +201,12 @@ Todo vive en una sola tablet. Si se pierde, se moja o alguien le borra los
 datos del navegador, se va la libreta completa del negocio. Hace falta por lo
 menos poder descargar todo a un archivo, y de ahí para arriba un servidor.
 
-### 3. Buscar y corregir notas
+### 3. Buscar entre las notas
 
-El tablero sirve para ver el día. Con 90 notas al mes ya no, y hoy no hay
-forma de buscar por número ni por cliente, ni de corregir una nota mal
-capturada: solo se avanza de etapa.
+Corregir una nota ya se puede: se toca en el tablero y se abre. Lo que falta
+es buscarla. El tablero sirve para ver el día; con 90 notas al mes hay que
+poder escribir un número de nota o un nombre y que salga, sin recorrer cinco
+columnas.
 
 ### 4. Sincronizar entre sucursales
 
