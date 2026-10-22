@@ -90,13 +90,13 @@ aplicación no tiene pantalla de ruta.
 - **Sucursales.** Hoy es una. Quieren abrir otra y se avisará cuando abran.
 - **Punto 14.** Casi siempre el negocio lleva la ropa a la maquila el martes a
   las 7 am. A veces la maquila pasa por ella. A veces los de la maquila llevan
-  la ropa ya lavada a casa del señor, según cómo se organicen y cuánta ropa
+  la ropa ya lavada a casa del dueño de la tintorería, según cómo se organicen y cuánta ropa
   haya. Esa ropa no llega al local.
 
 ## Lo que falta preguntar
 
 1. ¿Quién paga la prenda que la maquila pierde o maltrata? Se va a preguntar.
-2. Punto 14. Cuando la maquila deja la ropa en casa del señor, ¿ahí se
+2. Punto 14. Cuando la maquila deja la ropa en casa del dueño, ¿ahí se
    cuenta y se embolsa, y de ahí pasa al local? Si importa saber dónde está
    la ropa, hay que agregar ese dato a la nota.
 3. ¿Cuántos días de embolsada se dan antes de darla por no recogida? La

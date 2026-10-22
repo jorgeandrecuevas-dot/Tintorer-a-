@@ -273,7 +273,7 @@ llevan.
 
 ### 4. El punto 14
 
-A veces la maquila lleva la ropa ya lavada a casa del señor, y no al local.
+A veces la maquila lleva la ropa ya lavada a casa del dueño, y no al local.
 Hoy «De vuelta» no dice dónde está la ropa. Si le importa al dueño, se agrega
 a la nota un dato de dónde llegó.
 
