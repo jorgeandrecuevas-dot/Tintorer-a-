@@ -74,18 +74,17 @@ const boton   = document.getElementById('btnAgregar');
 const galeria = document.getElementById('galeria');
 const aviso   = document.getElementById('galeriaVacia');
 
-// addEventListener para el clic del botón
-boton.addEventListener('click', function () {
+// Las fotos de la nota que se está capturando
+let fotos = [];
 
-  const url = campo.value.trim();
-  if (url === '') return;                        // sin URL no se hace nada
-
+// Mete una foto a la rejilla. La usan el botón de la actividad y la cámara.
+function agregarFoto(src) {
   // document.createElement() para la columna y para la imagen
   const columna = document.createElement('div');
   columna.className = 'col';
 
   const img = document.createElement('img');
-  img.src = url;
+  img.src = src;
   img.alt = 'Foto ' + (galeria.children.length + 1) + ' de la prenda';
   img.className = 'foto-prenda rounded border';
 
@@ -104,7 +103,15 @@ boton.addEventListener('click', function () {
   columna.appendChild(img);
   galeria.appendChild(columna);
 
+  fotos.push(src);
   aviso.classList.add('d-none');
+}
+
+// addEventListener para el clic del botón
+boton.addEventListener('click', function () {
+  const url = campo.value.trim();
+  if (url === '') return;                        // sin URL no se hace nada
+  agregarFoto(url);
   campo.value = '';
   campo.focus();
 });
@@ -112,6 +119,48 @@ boton.addEventListener('click', function () {
 // Comodidad: presionar Enter en el campo hace lo mismo que el botón
 campo.addEventListener('keydown', function (evento) {
   if (evento.key === 'Enter') boton.click();
+});
+
+
+/* -------------------------------------------------------------------------
+   1.1 LA FOTO CON LA CÁMARA   (punto 21 de los apuntes)
+
+   En el mostrador nadie va a pegar una dirección de internet. Se toma la
+   foto y ya. Se achica antes de guardarla: una foto de tablet pesa varios
+   megas y el almacén del navegador no aguanta ni tres notas así.
+   ------------------------------------------------------------------------- */
+
+const LADO_MAXIMO = 1000;
+
+function achicar(archivo) {
+  return new Promise(function (listo) {
+    const lector = new FileReader();
+    lector.onload = function () {
+      const original = new Image();
+      original.onload = function () {
+        const escala = Math.min(1, LADO_MAXIMO / Math.max(original.width, original.height));
+        const tabla = document.createElement('canvas');
+        tabla.width  = Math.round(original.width  * escala);
+        tabla.height = Math.round(original.height * escala);
+        tabla.getContext('2d').drawImage(original, 0, 0, tabla.width, tabla.height);
+        listo(tabla.toDataURL('image/jpeg', 0.7));
+      };
+      // Si el archivo no es una imagen que el navegador entienda, se usa tal cual
+      original.onerror = function () { listo(lector.result); };
+      original.src = lector.result;
+    };
+    lector.readAsDataURL(archivo);
+  });
+}
+
+const tomarFoto = document.getElementById('tomarFoto');
+
+tomarFoto.addEventListener('change', function () {
+  const archivos = Array.prototype.slice.call(tomarFoto.files);
+  archivos.forEach(function (archivo) {
+    achicar(archivo).then(agregarFoto);
+  });
+  tomarFoto.value = '';        // para poder volver a elegir la misma foto
 });
 
 
@@ -282,15 +331,27 @@ function leerNotas() {
   }
 }
 
+// Devuelve si alcanzó a guardar. Con fotos adentro el almacén del navegador
+// se puede llenar, y fallar en silencio ahí sería perder notas sin que nadie
+// se entere.
 function escribirNotas(notas) {
   try {
     localStorage.setItem(LLAVE, JSON.stringify(notas));
+    return true;
   } catch (e) {
-    // Si no se puede guardar, la sesión sigue en memoria y se avisa al salir
+    return false;
   }
 }
 
-let NOTAS = leerNotas();
+// Cada nota lleva su propio identificador. El número de nota lo escribe el
+// negocio y no hay nada que garantice que no se repita, así que no sirve para
+// encontrarla en la lista.
+function conId(n) {
+  if (!n.id) n.id = 'n' + Math.random().toString(36).slice(2, 10);
+  return n;
+}
+
+let NOTAS = leerNotas().map(conId);
 
 // La primera vez se siembran unas notas para que el tablero no arranque vacío
 if (NOTAS.length === 0) {
@@ -307,7 +368,7 @@ if (NOTAS.length === 0) {
   ].map(function (n) {
     n.entrega = textoFecha(fechaEntrega(hoy, false));
     n.observaciones = '';
-    return n;
+    return conId(n);
   });
   escribirNotas(NOTAS);
 }
@@ -480,77 +541,93 @@ dibujarNota();
 
 
 /* -------------------------------------------------------------------------
-   6. LA FIRMA
+   6. LAS FIRMAS
 
-   Un canvas y el dedo. No usa red ni biblioteca, así que funciona en la
-   tablet aunque no haya internet.
+   Un canvas y el dedo. No usa red ni biblioteca, así que sirve en la tablet
+   aunque no haya internet. Son dos: una al dejar la ropa y otra al recogerla,
+   como pide el punto 20 de los apuntes.
    ------------------------------------------------------------------------- */
-
-const lienzo = document.getElementById('firma');
-const pincel = lienzo.getContext('2d');
-let trazando = false;
-let hayFirma = false;
 
 const ALTO_FIRMA = 140;
 
-function ajustarLienzo() {
-  // Cambiarle el ancho a un canvas lo borra. Al girar la tablet eso tiraba
-  // la firma que el cliente ya había puesto, así que se guarda y se repinta.
-  const guardado = hayFirma ? lienzo.toDataURL() : null;
+function crearFirma(id) {
+  const lienzo = document.getElementById(id);
+  const pincel = lienzo.getContext('2d');
+  let trazando = false;
+  let hayTrazo = false;
 
-  const ancho = lienzo.clientWidth;
-  lienzo.width  = ancho * 2;          // al doble, para que no se vea pixelada
-  lienzo.height = ALTO_FIRMA * 2;
-  lienzo.style.height = ALTO_FIRMA + 'px';
-  pincel.setTransform(1, 0, 0, 1, 0, 0);
-  pincel.scale(2, 2);
-  pincel.lineWidth = 2;
-  pincel.lineCap = 'round';
-  pincel.strokeStyle = '#212529';
+  function ajustar() {
+    // Cambiarle el ancho a un canvas lo borra. Al girar la tablet eso tiraba
+    // la firma que el cliente ya había puesto, así que se guarda y se repinta.
+    const guardado = hayTrazo ? lienzo.toDataURL() : null;
 
-  if (guardado) {
-    const previa = new Image();
-    previa.onload = function () { pincel.drawImage(previa, 0, 0, ancho, ALTO_FIRMA); };
-    previa.src = guardado;
+    const ancho = lienzo.clientWidth;
+    if (ancho === 0) return;          // escondido todavía: no hay qué medir
+
+    lienzo.width  = ancho * 2;        // al doble, para que no se vea pixelada
+    lienzo.height = ALTO_FIRMA * 2;
+    lienzo.style.height = ALTO_FIRMA + 'px';
+    pincel.setTransform(1, 0, 0, 1, 0, 0);
+    pincel.scale(2, 2);
+    pincel.lineWidth = 2;
+    pincel.lineCap = 'round';
+    pincel.strokeStyle = '#212529';
+
+    if (guardado) {
+      const previa = new Image();
+      previa.onload = function () { pincel.drawImage(previa, 0, 0, ancho, ALTO_FIRMA); };
+      previa.src = guardado;
+    }
   }
+
+  function puntoEn(evento) {
+    const caja = lienzo.getBoundingClientRect();
+    return { x: evento.clientX - caja.left, y: evento.clientY - caja.top };
+  }
+
+  lienzo.addEventListener('pointerdown', function (evento) {
+    trazando = true;
+    hayTrazo = true;
+    // Capturar el puntero evita que el trazo se corte si el dedo se sale del
+    // recuadro. No todos los navegadores lo tienen, y no vale perder la firma
+    // por eso.
+    try { lienzo.setPointerCapture(evento.pointerId); } catch (e) { }
+    const p = puntoEn(evento);
+    pincel.beginPath();
+    pincel.moveTo(p.x, p.y);
+  });
+
+  lienzo.addEventListener('pointermove', function (evento) {
+    if (!trazando) return;
+    evento.preventDefault();
+    const p = puntoEn(evento);
+    pincel.lineTo(p.x, p.y);
+    pincel.stroke();
+  });
+
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (nombre) {
+    lienzo.addEventListener(nombre, function () { trazando = false; });
+  });
+
+  ajustar();
+  window.addEventListener('resize', ajustar);
+
+  return {
+    ajustar: ajustar,
+    limpiar: function () {
+      pincel.clearRect(0, 0, lienzo.width, lienzo.height);
+      hayTrazo = false;
+    },
+    tiene: function () { return hayTrazo; },
+    imagen: function () { return hayTrazo ? lienzo.toDataURL('image/png') : null; }
+  };
 }
-ajustarLienzo();
-window.addEventListener('resize', ajustarLienzo);
 
-function puntoEn(evento) {
-  const caja = lienzo.getBoundingClientRect();
-  return { x: evento.clientX - caja.left, y: evento.clientY - caja.top };
-}
+const firmaRecibido = crearFirma('firma');
+const firmaEntrega  = crearFirma('firmaEntrega');
 
-lienzo.addEventListener('pointerdown', function (evento) {
-  trazando = true;
-  hayFirma = true;
-  // Capturar el puntero evita que el trazo se corte si el dedo se sale del
-  // recuadro. No todos los navegadores lo tienen, y no vale perder la firma
-  // por eso.
-  try { lienzo.setPointerCapture(evento.pointerId); } catch (e) { }
-  const p = puntoEn(evento);
-  pincel.beginPath();
-  pincel.moveTo(p.x, p.y);
-});
-
-lienzo.addEventListener('pointermove', function (evento) {
-  if (!trazando) return;
-  evento.preventDefault();
-  const p = puntoEn(evento);
-  pincel.lineTo(p.x, p.y);
-  pincel.stroke();
-});
-
-['pointerup', 'pointercancel', 'pointerleave'].forEach(function (nombre) {
-  lienzo.addEventListener(nombre, function () { trazando = false; });
-});
-
-function limpiarFirma() {
-  pincel.clearRect(0, 0, lienzo.width, lienzo.height);
-  hayFirma = false;
-}
-document.getElementById('btnLimpiarFirma').addEventListener('click', limpiarFirma);
+document.getElementById('btnLimpiarFirma').addEventListener('click', firmaRecibido.limpiar);
+document.getElementById('btnLimpiarEntrega').addEventListener('click', firmaEntrega.limpiar);
 
 
 /* -------------------------------------------------------------------------
@@ -569,7 +646,7 @@ document.getElementById('btnGuardar').addEventListener('click', function () {
   const c = cuentaNota();
   if (c.piezas === 0) { avisar('La nota no tiene prendas.'); return; }
 
-  NOTAS.unshift({
+  NOTAS.unshift(conId({
     folio: folio,
     cliente: inpCliente.value.trim() || 'Sin nombre',
     telefono: document.getElementById('telCliente').value.trim(),
@@ -581,10 +658,18 @@ document.getElementById('btnGuardar').addEventListener('click', function () {
     observaciones: inpObserva.value.trim(),
     detalle: c.renglones.map(function (r) { return r.texto; }).join(' · '),
     entrega: textoFecha(c.entrega),
-    firmada: hayFirma,
+    firmaRecibido: firmaRecibido.imagen(),
+    fotos: fotos.slice(),
     estatus: 'recibida'
-  });
-  escribirNotas(NOTAS);
+  }));
+
+  if (!escribirNotas(NOTAS)) {
+    // Si no se guardó, tampoco se queda en memoria: si no, el tablero
+    // enseñaría una nota que al recargar ya no está.
+    NOTAS.shift();
+    avisar('No se pudo guardar: ya no cabe en la tablet. Hay que descargar las notas viejas.');
+    return;
+  }
 
   // Se limpia para la siguiente
   prendas = [];
@@ -593,9 +678,10 @@ document.getElementById('btnGuardar').addEventListener('click', function () {
   document.getElementById('telCliente').value = '';
   inpObserva.value = '';
   galeria.innerHTML = '';
+  fotos = [];
   aviso.classList.remove('d-none');
   resumenCliente.textContent = 'Sin nombre';
-  limpiarFirma();
+  firmaRecibido.limpiar();
   dibujarNota();
 
   avisar('Nota ' + folio + ' guardada.');
@@ -628,11 +714,27 @@ function tarjetaNota(n) {
     saldo.textContent = 'Debe ' + pesos(n.saldo);
     li.appendChild(saldo);
   }
+  if (n.faltan > 0) {
+    const falta = document.createElement('div');
+    falta.className = 'badge text-bg-danger mt-1';
+    falta.textContent = (n.faltan === 1 ? 'Falta ' : 'Faltan ') + n.faltan +
+                        (n.faltan === 1 ? ' prenda' : ' prendas');
+    li.appendChild(falta);
+  }
   if (n.observaciones) {
     const obs = document.createElement('div');
     obs.className = 'small text-danger mt-1';
     obs.textContent = n.observaciones;
     li.appendChild(obs);
+  }
+
+  // Lo embolsado es lo que el cliente puede venir a recoger
+  if (n.estatus === 'lista') {
+    const entregar = document.createElement('button');
+    entregar.className = 'btn btn-sm btn-primary w-100 mt-2';
+    entregar.textContent = n.saldo > 0 ? 'Cobrar y entregar' : 'Entregar';
+    entregar.addEventListener('click', function () { abrirEntrega(n.id); });
+    li.appendChild(entregar);
   }
   return li;
 }
@@ -674,38 +776,113 @@ function dibujarTablero() {
 
 
 /* -------------------------------------------------------------------------
+   8.1 ENTREGAR LA ROPA
+
+   El cliente viene por su ropa, paga lo que debe y firma de entregado. Es la
+   segunda firma del punto 20: una al dejarla y otra al recogerla.
+   ------------------------------------------------------------------------- */
+
+const cuadroEntrega = document.getElementById('modalEntrega');
+let notaEnEntrega = null;
+
+function abrirEntrega(id) {
+  notaEnEntrega = NOTAS.find(function (n) { return n.id === id; });
+  if (!notaEnEntrega) return;
+
+  document.getElementById('entregaNota').textContent =
+    notaEnEntrega.folio + ' · ' + notaEnEntrega.cliente;
+  document.getElementById('entregaDetalle').textContent =
+    notaEnEntrega.piezas + (notaEnEntrega.piezas === 1 ? ' pieza · ' : ' piezas · ') +
+    (notaEnEntrega.detalle || '');
+  document.getElementById('entregaSaldo').textContent = pesos(notaEnEntrega.saldo);
+
+  firmaEntrega.limpiar();
+  bootstrap.Modal.getOrCreateInstance(cuadroEntrega).show();
+}
+
+// El canvas está escondido hasta que se abre el cuadro, y un canvas sin
+// ancho visible mide cero. Se ajusta cuando ya se está viendo.
+cuadroEntrega.addEventListener('shown.bs.modal', firmaEntrega.ajustar);
+
+document.getElementById('btnConfirmarEntrega').addEventListener('click', function () {
+  if (!notaEnEntrega) return;
+
+  if (!firmaEntrega.tiene()) {
+    avisar('Falta que el cliente firme de entregado.');
+    return;
+  }
+
+  notaEnEntrega.firmaEntrega = firmaEntrega.imagen();
+  notaEnEntrega.pagado = notaEnEntrega.total;    // al recoger se liquida
+  notaEnEntrega.saldo = 0;
+  notaEnEntrega.estatus = 'entregada';
+  escribirNotas(NOTAS);
+
+  bootstrap.Modal.getOrCreateInstance(cuadroEntrega).hide();
+  dibujarTablero();
+  avisar('Nota ' + notaEnEntrega.folio + ' entregada.');
+  notaEnEntrega = null;
+});
+
+
+/* -------------------------------------------------------------------------
    9. MAQUILA
 
    Lo que sale el martes, lo que se le paga en el momento, y lo que regresa.
    ------------------------------------------------------------------------- */
 
-function renglonMaquila(n) {
+function renglonMaquila(n, conConteo) {
   const li = document.createElement('li');
-  li.className = 'list-group-item d-flex justify-content-between align-items-center';
+  li.className = 'list-group-item d-flex justify-content-between align-items-center gap-2';
 
   const izq = document.createElement('div');
+  izq.className = 'min-w-0';
   const t = document.createElement('div');
   t.className = 'fw-semibold';
   t.textContent = n.folio + ' · ' + n.cliente;
   const s = document.createElement('small');
-  s.className = 'text-secondary';
+  s.className = 'text-secondary d-block';
   s.textContent = n.detalle || '';
   izq.appendChild(t);
   izq.appendChild(s);
-
-  const der = document.createElement('div');
-  der.className = 'text-end';
-  const piezas = document.createElement('div');
-  piezas.className = 'fw-semibold';
-  piezas.textContent = n.piezas + (n.piezas === 1 ? ' pieza' : ' piezas');
-  const pago = document.createElement('small');
-  pago.className = 'text-danger';
-  pago.textContent = pesos(n.costo);
-  der.appendChild(piezas);
-  der.appendChild(pago);
-
   li.appendChild(izq);
-  li.appendChild(der);
+
+  if (conConteo) {
+    // El punto 3 pide la nota del total de prendas enviadas y a recibir. Al
+    // volver se cuenta contra lo que salió, que es lo que evita que se pierda
+    // ropa sin que nadie se dé cuenta.
+    const caja = document.createElement('div');
+    caja.className = 'text-end flex-shrink-0';
+
+    const salieron = document.createElement('small');
+    salieron.className = 'text-secondary d-block';
+    salieron.textContent = 'Salieron ' + n.piezas;
+    caja.appendChild(salieron);
+
+    const cuenta = document.createElement('input');
+    cuenta.type = 'number';
+    cuenta.min = '0';
+    cuenta.value = n.piezas;
+    cuenta.className = 'form-control form-control-sm text-center conteo-vuelta';
+    cuenta.setAttribute('aria-label', 'Prendas que regresaron de la nota ' + n.folio);
+    cuenta.dataset.nota = n.id;
+    caja.appendChild(cuenta);
+
+    li.appendChild(caja);
+  } else {
+    const der = document.createElement('div');
+    der.className = 'text-end flex-shrink-0';
+    const piezas = document.createElement('div');
+    piezas.className = 'fw-semibold';
+    piezas.textContent = n.piezas + (n.piezas === 1 ? ' pieza' : ' piezas');
+    const pago = document.createElement('small');
+    pago.className = 'text-danger';
+    pago.textContent = pesos(n.costo);
+    der.appendChild(piezas);
+    der.appendChild(pago);
+    li.appendChild(der);
+  }
+
   return li;
 }
 
@@ -726,7 +903,7 @@ function dibujarMaquila() {
 
   const otra = document.getElementById('listaMaquila');
   otra.innerHTML = '';
-  fuera.forEach(function (n) { otra.appendChild(renglonMaquila(n)); });
+  fuera.forEach(function (n) { otra.appendChild(renglonMaquila(n, true)); });
 
   const piezas = envio.reduce(function (s, n) { return s + n.piezas; }, 0);
   const pago   = envio.reduce(function (s, n) { return s + n.costo;  }, 0);
@@ -753,10 +930,32 @@ document.getElementById('btnEnviar').addEventListener('click', function () {
 document.getElementById('btnRecibir').addEventListener('click', function () {
   const fuera = enMaquila();
   if (fuera.length === 0) { avisar('No hay nada en la maquila.'); return; }
-  fuera.forEach(function (n) { n.estatus = 'devuelta'; });
+
+  let faltantes = 0;
+  let notasCortas = 0;
+
+  document.querySelectorAll('.conteo-vuelta').forEach(function (casilla) {
+    const nota = NOTAS.find(function (n) { return n.id === casilla.dataset.nota; });
+    if (!nota) return;
+
+    const regresaron = Math.max(0, parseInt(casilla.value, 10) || 0);
+    nota.regresaron = regresaron;
+    nota.faltan = Math.max(0, nota.piezas - regresaron);
+    nota.estatus = 'devuelta';
+
+    if (nota.faltan > 0) { faltantes += nota.faltan; notasCortas += 1; }
+  });
+
   escribirNotas(NOTAS);
   dibujarMaquila();
-  avisar('Regresaron ' + fuera.length + (fuera.length === 1 ? ' nota.' : ' notas.'));
+
+  if (faltantes > 0) {
+    avisar((faltantes === 1 ? 'Falta ' : 'Faltan ') + faltantes +
+           (faltantes === 1 ? ' prenda en ' : ' prendas en ') + notasCortas +
+           (notasCortas === 1 ? ' nota.' : ' notas.'));
+  } else {
+    avisar('Regresó todo: ' + fuera.length + (fuera.length === 1 ? ' nota.' : ' notas.'));
+  }
 });
 
 
@@ -831,7 +1030,8 @@ function renglonHoja(izquierda, derecha, fuerte) {
   return d;
 }
 
-function imprimirHoja(titulo, armar) {
+function imprimirHoja(titulo, armar, clase) {
+  hoja.className = clase || '';
   hoja.innerHTML = '';
   const h = document.createElement('h2');
   h.textContent = titulo;
@@ -910,6 +1110,51 @@ document.getElementById('btnNotaMaquila').addEventListener('click', function () 
   });
 });
 
+// Documento 4: las etiquetas que se pegan a cada prenda antes de que salga.
+// El punto 2 de los apuntes: la ropa se rastrea por el número de su nota.
+document.getElementById('btnEtiquetas').addEventListener('click', function () {
+  const envio = porEnviar();
+  if (envio.length === 0) { avisar('No hay notas para enviar.'); return; }
+
+  const vuelve = textoFecha(regresoDe(proximaSalida(new Date())));
+
+  imprimirHoja('Etiquetas', function (caja) {
+    const rejilla = document.createElement('div');
+    rejilla.className = 'etiquetas';
+
+    envio.forEach(function (n) {
+      for (let i = 1; i <= n.piezas; i++) {
+        const et = document.createElement('div');
+        et.className = 'etiqueta';
+
+        const folio = document.createElement('div');
+        folio.className = 'folio';
+        folio.textContent = n.folio;
+
+        const quien = document.createElement('div');
+        quien.className = 'quien';
+        quien.textContent = n.cliente;
+
+        const pieza = document.createElement('div');
+        pieza.className = 'pieza';
+        const cual = document.createElement('span');
+        cual.textContent = 'Pieza ' + i + ' de ' + n.piezas;
+        const cuando = document.createElement('span');
+        cuando.textContent = vuelve;
+        pieza.appendChild(cual);
+        pieza.appendChild(cuando);
+
+        et.appendChild(folio);
+        et.appendChild(quien);
+        et.appendChild(pieza);
+        rejilla.appendChild(et);
+      }
+    });
+
+    caja.appendChild(rejilla);
+  }, 'ancha');
+});
+
 // Documento 3: el conteo del dueño
 document.getElementById('btnConteo').addEventListener('click', function () {
   imprimirHoja('Conteo financiero', function (caja) {
@@ -932,3 +1177,46 @@ document.getElementById('btnConteo').addEventListener('click', function () {
 
 
 dibujarTablero();
+
+
+/* -------------------------------------------------------------------------
+   12. TRABAJAR SIN INTERNET
+
+   El punto 20 de los apuntes lo pide. Bootstrap ya vive dentro del proyecto,
+   y el service worker guarda la aplicación en la tablet para que abra en frío
+   aunque no haya señal desde que se prende.
+   ------------------------------------------------------------------------- */
+
+const estadoRed = document.getElementById('estadoRed');
+
+function marcarEstado() {
+  if (!estadoRed) return;
+  if (!navigator.onLine) {
+    estadoRed.textContent = 'Sin señal · sigue trabajando';
+    estadoRed.className = 'mt-2 small text-warning';
+  } else if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+    estadoRed.textContent = 'Guardada en la tablet';
+    estadoRed.className = 'mt-2 small text-success';
+  } else {
+    estadoRed.textContent = '';
+  }
+}
+
+window.addEventListener('online', marcarEstado);
+window.addEventListener('offline', marcarEstado);
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js')
+      .then(function () {
+        // Cuando toma el control, la aplicación ya está completa en la tablet
+        if (navigator.serviceWorker.controller) marcarEstado();
+        navigator.serviceWorker.addEventListener('controllerchange', marcarEstado);
+      })
+      .catch(function () {
+        // Abierta con doble clic (file://) no hay service worker, y está bien:
+        // la aplicación funciona igual, nada más no queda guardada.
+      });
+  });
+}
+marcarEstado();

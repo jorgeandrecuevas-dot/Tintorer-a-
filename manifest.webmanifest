@@ -1,0 +1,16 @@
+{
+  "name": "Tintorería · Sistema de notas",
+  "short_name": "Tintorería",
+  "description": "Captura de notas, maquila y corte para tintorería y lavandería.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f8fa",
+  "theme_color": "#212529",
+  "lang": "es",
+  "icons": [
+    { "src": "./icono.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./icono.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

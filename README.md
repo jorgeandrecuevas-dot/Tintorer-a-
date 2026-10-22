@@ -8,6 +8,16 @@ etiquetada por número de nota. Hoy el negocio trabaja con libreta de papel.
 Lo que hace sale de los apuntes que se levantaron con el negocio el 22 de
 octubre. Están en [APUNTES.md](APUNTES.md) y mandan sobre el código.
 
+## Funciona sin internet
+
+Es lo que pide el punto 20 de los apuntes. Bootstrap vive dentro del
+proyecto y un service worker guarda la aplicación en la tablet, así que
+abre en frío aunque no haya señal desde que se prende. Las notas se guardan
+en el aparato.
+
+Para comprobarlo: abre la página una vez, apaga el wifi y vuelve a entrar.
+El menú lateral avisa cuándo está guardada y cuándo estás sin señal.
+
 ## Las cuatro pantallas
 
 Se navega con el menú. En computadora es una barra lateral fija; abajo de
@@ -23,9 +33,12 @@ Se navega con el menú. En computadora es una barra lateral fija; abajo de
   tipo son.
 - **Observaciones** de cómo llegó la prenda: botón que falta, rotura. Es lo
   que se reclama después.
-- **Fotos** de la prenda, que es donde vive la galería de la Actividad 1.
-- **Firma del cliente** en la pantalla. No usa red ni biblioteca, así que
-  funciona sin internet, y aguanta que giren la tablet.
+- **Foto con la cámara**, que es como se toma en el mostrador. La foto se
+  achica a 1000 píxeles antes de guardarla, porque una foto de tablet pesa
+  varios megas y el almacén del navegador no aguanta ni tres notas así. El
+  campo para pegar una dirección sigue ahí: es el requisito de la Actividad 1.
+- **Firma del cliente** en la pantalla. No usa red ni biblioteca, y aguanta
+  que giren la tablet.
 - **Cobro** con anticipo del 50% o pago total, y el saldo a la vista.
 - La **fecha de entrega se calcula sola** con el ciclo de la maquila.
 
@@ -34,15 +47,18 @@ Se navega con el menú. En computadora es una barra lateral fija; abajo de
 ![Tablero](capturas/tablero.png)
 
 Cinco etapas: recibida, en maquila, de vuelta, embolsada y entregada. Las
-notas con saldo traen su marca, y las observaciones se ven desde aquí.
+notas con saldo traen su marca, las observaciones se ven desde aquí, y lo
+que no regresó completo de la maquila sale marcado en rojo.
 
 ### 3. Maquila
 
 ![Maquila](capturas/maquila.png)
 
-Lo que sale, cuántas prendas son y cuánto se le paga en el momento. De un
-lado lo que está listo para salir, del otro lo que ya está allá. El botón
-imprime la nota que se firma de entrega y recibo.
+Lo que sale, cuántas prendas son y cuánto se le paga en el momento.
+
+Al recibir de vuelta, cada nota trae una casilla con lo que salió para
+contar lo que regresó. Si no cuadra, la nota queda marcada. Eso es el
+control del punto 2: que no se pierda ropa en la maquila.
 
 ### 4. Corte
 
@@ -50,6 +66,14 @@ imprime la nota que se firma de entrega y recibo.
 
 Facturado, cobrado, por cobrar, lo pagado a la maquila y la utilidad. Sale
 de las notas capturadas, no de juntar tickets.
+
+## Las dos firmas
+
+![Entregar la ropa](capturas/entrega.png)
+
+El punto 20 pide firmar de recibido y de entregado. La primera se levanta al
+capturar la nota. La segunda, cuando el cliente viene por su ropa: desde el
+tablero se cobra el saldo y firma. Sin firma no deja entregar.
 
 ## El ciclo de la semana
 
@@ -64,15 +88,18 @@ La ropa sale los martes, jueves y sábados, y vuelve en la salida siguiente:
 Los cobertores y edredones tardan más, así que saltan un ciclo. La fecha de
 entrega de cada nota se calcula con esta regla.
 
-## Los tres documentos
+## Los cuatro documentos
 
-El mismo pedido contado de tres maneras, que es como lo pidió el negocio:
+El mismo pedido contado de varias maneras, que es como lo pidió el negocio:
 
 | Documento | Para quién | Qué lleva |
 |---|---|---|
 | Ticket | Cliente | Qué dejó, total, anticipo, saldo y su firma |
 | Nota de maquila | Maquila | Cuántas prendas van, cuánto se le paga |
+| Etiquetas | La ropa | Una por prenda, con el número de nota |
 | Conteo | El dueño | Cobrado contra pagado, y lo que quedó |
+
+![Etiquetas](capturas/etiquetas.png)
 
 ## Cómo se adapta a cada dispositivo
 
@@ -88,9 +115,12 @@ computadora. Lo hacen tres clases de Bootstrap,
 
 | Archivo | Qué tiene |
 |---|---|
-| `index.html` | Las cuatro pantallas y el menú |
-| `styles.css` | El menú lateral, las miniaturas, la firma y la hoja que se imprime |
-| `script.js` | Navegación, ciclo de la maquila, catálogo, cobro, firma y los tres documentos |
+| `index.html` | Las cuatro pantallas, el cuadro de entrega y el menú |
+| `styles.css` | El menú lateral, las miniaturas, las firmas y las hojas que se imprimen |
+| `script.js` | Navegación, ciclo de la maquila, catálogo, cobro, firmas, conteo y documentos |
+| `sw.js` | Guarda la aplicación en la tablet para que abra sin señal |
+| `manifest.webmanifest` | Para instalarla como aplicación en la tablet |
+| `vendor/` | Bootstrap, dentro del proyecto y no desde internet |
 | `APUNTES.md` | Cómo funciona el negocio, en sus palabras |
 
 ## Dónde está cada requisito de la Actividad 1
@@ -104,19 +134,20 @@ Todo en la sección «1. GALERÍA DE FOTOGRAFÍAS» de `script.js`.
 | Contenedor de la galería | `index.html` → `id="galeria"` |
 | Rejilla responsiva | `row-cols-2 row-cols-md-3 row-cols-lg-4` |
 | `addEventListener` | `script.js` → en el clic de `btnAgregar` |
-| `document.createElement()` | `script.js` → crea la columna y la imagen |
+| `document.createElement()` | `script.js` → en `agregarFoto`, crea la columna y la imagen |
 | `appendChild()` | `script.js` → mete la imagen en la columna y la columna en la galería |
 
 Los tres identificadores son únicos.
 
 ## Cómo probarlo
 
-Entra a la liga de arriba, o abre `index.html` con doble clic. Hoy necesita
-internet porque Bootstrap se carga de su CDN, y eso está por cambiar.
+Entra a la liga de arriba. También abre con doble clic en `index.html`, pero
+así no queda guardada en el aparato: el service worker necesita que la página
+venga de un servidor.
 
-Las notas se guardan en el navegador, así que siguen ahí al recargar. Para
-empezar de cero: herramientas de desarrollador, Application, Local Storage,
-borrar `tintoreria.notas`.
+Las notas se guardan en el navegador y siguen ahí al recargar. Para empezar
+de cero: herramientas de desarrollador, Application, Local Storage, borrar
+`tintoreria.notas`.
 
 ## Sobre los precios
 
@@ -136,13 +167,11 @@ pendiente de confirmar con el dueño.
 
 ## Pendientes
 
-1. **Traer Bootstrap dentro del proyecto.** El punto 20 de los apuntes pide
-   firmar sin internet, y hoy la página no abre sin red.
-2. **Sincronizar entre sucursales.** Cada tablet guarda lo suyo. El punto 6
-   pide una tablet por sucursal.
-3. **Firma de entregado.** Hoy solo se firma de recibido; faltan las dos
-   firmas del punto 20.
-4. **Cámara en lugar de dirección de imagen**
-   (`<input type="file" accept="image/*" capture>`).
-5. **Conteo de lo que regresa de la maquila** contra lo que se mandó.
-6. **Etiquetas imprimibles** con el número de nota, para pegarlas a la ropa.
+1. **Sincronizar entre sucursales.** Cada tablet guarda lo suyo. El punto 6
+   pide una tablet por sucursal, y hoy no se hablan entre ellas.
+2. **Descargar y borrar notas viejas.** El almacén del navegador se llena, y
+   cuando pasa la aplicación avisa pero no hay a dónde vaciarlo.
+3. **Editar una nota ya guardada.** Hoy solo se avanza de etapa.
+4. **Confirmar con el dueño** las cinco preguntas del final de `APUNTES.md`.
+   La primera es si hay entrega a domicilio al cliente, porque los apuntes
+   solo hablan de ir a la maquila.
