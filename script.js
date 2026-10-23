@@ -686,6 +686,7 @@ function clientesDeAntes() {
 }
 
 function dibujarClientes() {
+  clearTimeout(esconderClientes);
   const busca = sinAcentos(inpCliente.value.trim());
   cajaClientes.innerHTML = '';
 
@@ -731,10 +732,14 @@ function dibujarClientes() {
 inpCliente.addEventListener('input', dibujarClientes);
 
 // Al salir del campo la lista estorba. El retraso deja que el toque en una
-// sugerencia alcance a registrarse antes de que se esconda.
+// sugerencia alcance a registrarse antes de que se esconda. Si se vuelve al
+// campo antes de que se cumpla, se cancela: si no, un blur viejo esconde una
+// lista que ya se volvió a mostrar.
+let esconderClientes = null;
 inpCliente.addEventListener('blur', function () {
-  setTimeout(function () { cajaClientes.classList.add('d-none'); }, 200);
+  esconderClientes = setTimeout(function () { cajaClientes.classList.add('d-none'); }, 200);
 });
+inpCliente.addEventListener('focus', function () { clearTimeout(esconderClientes); });
 
 
 /* El buscador de prendas.
@@ -749,6 +754,14 @@ CATEGORIAS.forEach(function (c) { NOMBRE_CATEGORIA[c.id] = c.nombre; });
 function sinAcentos(texto) {
   return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
+
+// Los más y menos son para capturar de pie, con el dedo, sin teclado
+document.getElementById('masCantidad').addEventListener('click', function () {
+  inpCantidad.value = (parseInt(inpCantidad.value, 10) || 0) + 1;
+});
+document.getElementById('menosCantidad').addEventListener('click', function () {
+  inpCantidad.value = Math.max(1, (parseInt(inpCantidad.value, 10) || 2) - 1);
+});
 
 function agregarPrenda(pieza) {
   const cantidad = parseInt(inpCantidad.value, 10);

@@ -1,0 +1,14 @@
+{
+  "name": "tintoreria",
+  "private": true,
+  "description": "Sistema de notas para una tintorería y lavandería. Sin build: se abre tal cual.",
+  "scripts": {
+    "servir": "python3 -m http.server 8766 --bind 127.0.0.1",
+    "revisar": "node --check script.js && for f in js/*.js; do node --check \"$f\"; done",
+    "probar": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  },
+  "type": "module"
+}

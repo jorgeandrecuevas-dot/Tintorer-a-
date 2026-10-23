@@ -262,3 +262,13 @@ body {
 .fila-hecha {
   opacity: .65;
 }
+
+/* Los avisos no estorban: el contenedor deja pasar los toques y solo el
+   aviso los recibe. Así nunca tapan un botón mientras están en pantalla. */
+.avisos {
+  pointer-events: none;
+  z-index: 1090;
+}
+.avisos .toast {
+  pointer-events: auto;
+}
