@@ -5,7 +5,8 @@ import { cuentaNota, inpCliente, inpFolio, inpObserva } from './captura.js';
 import { proximaSalida, regresoDe, textoFecha } from './ciclo.js';
 import { porEnviar } from './maquila.js';
 import { ETAPAS, NOTAS } from './notas.js';
-import { pesos } from './utilidades.js';
+import { pesos, pesosConSigno } from './utilidades.js';
+import { PERIODOS, resumenCorte, textoRango as textoRangoCorte } from './resumen.js';
 
 /* -------------------------------------------------------------------------
    11. LOS TRES DOCUMENTOS
@@ -224,33 +225,39 @@ document.getElementById('btnEtiquetas').addEventListener('click', function () {
 // Documento 3: el conteo del dueño
 document.getElementById('btnConteo').addEventListener('click', function () {
   imprimirHoja('Conteo financiero', function (caja) {
-    const facturado = NOTAS.reduce(function (s, n) { return s + n.total;  }, 0);
-    const cobrado   = NOTAS.reduce(function (s, n) { return s + n.pagado; }, 0);
-    const maquila   = NOTAS.reduce(function (s, n) { return s + n.costo;  }, 0);
-    const piezas    = NOTAS.reduce(function (s, n) { return s + n.piezas; }, 0);
+    // El mismo periodo que se está viendo en el Corte, y las mismas cuentas
+    const activo = document.querySelector('#periodosCorte .active');
+    const periodo = activo ? activo.dataset.periodo : 'todo';
+    const r = resumenCorte(NOTAS, periodo);
+    const vivas = NOTAS.filter(function (n) { return !n.cancelada; });
 
-    caja.appendChild(bloqueHoja('Movimiento', [
-      renglonHoja('Notas', String(NOTAS.length)),
-      renglonHoja('Piezas', String(piezas))
+    caja.appendChild(bloqueHoja('Periodo', [
+      renglonHoja(PERIODOS[periodo], textoRangoCorte(r))
     ]));
 
-    // Dónde está parada la ropa hoy
+    caja.appendChild(bloqueHoja('Movimiento', [
+      renglonHoja('Notas', String(r.notas.length)),
+      renglonHoja('Piezas', String(r.piezas))
+    ]));
+
+    // Dónde está parada la ropa hoy, sin importar el periodo
     caja.appendChild(bloqueHoja('Por etapa', ETAPAS.map(function (e) {
-      const cuantas = NOTAS.filter(function (n) { return n.estatus === e.id; }).length;
+      const cuantas = vivas.filter(function (n) { return n.estatus === e.id; }).length;
       return renglonHoja(e.nombre, String(cuantas));
     })));
 
     caja.appendChild(bloqueHoja('Entró', [
-      renglonHoja('Facturado', pesos(facturado)),
-      renglonHoja('Cobrado', pesos(cobrado)),
-      renglonHoja('Por cobrar', pesos(facturado - cobrado))
+      renglonHoja('Facturado', pesos(r.facturado)),
+      renglonHoja('Cobrado', pesos(r.cobrado)),
+      renglonHoja('Por cobrar hoy', pesos(r.porCobrar))
     ]));
 
     caja.appendChild(bloqueHoja('Salió', [
-      renglonHoja('Pagado a maquila', pesos(maquila))
+      renglonHoja('Pagado a maquila', pesos(r.maquila))
     ]));
 
-    caja.appendChild(totalHoja('Utilidad', pesos(facturado - maquila)));
+    caja.appendChild(totalHoja('Utilidad en caja', pesosConSigno(r.utilidadCaja)));
+    caja.appendChild(renglonHoja('Si cobran todo', pesosConSigno(r.utilidadSiCobran)));
 
     const firma = document.createElement('div');
     firma.className = 'hoja-firma';

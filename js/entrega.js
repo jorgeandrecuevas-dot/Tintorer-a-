@@ -2,7 +2,7 @@
 import { guardarImagen } from './almacen.js';
 import { avisar } from './avisos.js';
 import { firmaEntrega } from './firmas.js';
-import { NOTAS, guardarNotas, ponerEstatus } from './notas.js';
+import { NOTAS, guardarNotas, ponerEstatus, registrarPago } from './notas.js';
 import { pesos } from './utilidades.js';
 
 /* -------------------------------------------------------------------------
@@ -46,8 +46,7 @@ document.getElementById('btnConfirmarEntrega').addEventListener('click', functio
   const nota = notaEnEntrega;
   guardarImagen(firmaEntrega.imagen()).then(function (nombre) {
     nota.firmaEntrega = nombre;
-    nota.pagado = nota.total;        // al recoger se liquida
-    nota.saldo = 0;
+    registrarPago(nota, nota.total - nota.pagado, 'liquidacion');   // al recoger se liquida
     ponerEstatus(nota, 'entregada');
     if (!guardarNotas()) return;
 

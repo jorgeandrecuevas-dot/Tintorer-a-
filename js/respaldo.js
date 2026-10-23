@@ -2,7 +2,7 @@
 import { meterImagenes, todasLasImagenes, vaciarImagenes } from './almacen.js';
 import { avisar } from './avisos.js';
 import { alEntrar } from './navegacion.js';
-import { NOTAS, conId, escribirNotas, reemplazarNotas } from './notas.js';
+import { NOTAS, escribirNotas, normalizarNota, reemplazarNotas } from './notas.js';
 
 /* -------------------------------------------------------------------------
    14. EL RESPALDO
@@ -15,7 +15,7 @@ import { NOTAS, conId, escribirNotas, reemplazarNotas } from './notas.js';
    gigante, porque con cientos de fotos adentro eso no cabe en memoria.
    ------------------------------------------------------------------------- */
 
-const RESPALDO_VERSION = 1;
+const RESPALDO_VERSION = 2;
 
 /* El recordatorio. Un respaldo que nadie se acuerda de bajar no sirve. Si
    llevan más de una semana sin bajarlo sale un aviso en cualquier pantalla.
@@ -138,7 +138,7 @@ document.getElementById('archivoRespaldo').addEventListener('change', function (
     vaciarImagenes()
       .then(function () { return meterImagenes(pares); })
       .then(function (entraron) {
-        reemplazarNotas(datos.notas.map(conId));
+        reemplazarNotas(datos.notas.map(normalizarNota));
         const cupo = escribirNotas(NOTAS);
 
 

@@ -389,8 +389,15 @@
          VISTA 4 — CORTE
          ================================================================ -->
     <section class="vista d-none" id="vista-corte">
-      <p class="text-secondary">Lo cobrado contra lo que se le paga a la maquila.
-        Sale de las notas capturadas, no de juntar tickets de papel.</p>
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <div class="btn-group" role="group" aria-label="Periodo del corte" id="periodosCorte">
+          <button type="button" class="btn btn-outline-primary" data-periodo="hoy">Hoy</button>
+          <button type="button" class="btn btn-outline-primary active" data-periodo="semana">Esta semana</button>
+          <button type="button" class="btn btn-outline-primary" data-periodo="mes">Este mes</button>
+          <button type="button" class="btn btn-outline-primary" data-periodo="todo">Todo</button>
+        </div>
+        <span class="small text-secondary" id="rangoCorte"></span>
+      </div>
 
       <div class="row row-cols-2 row-cols-lg-5 g-3 mb-3">
         <div class="col"><div class="card h-100 text-center"><div class="card-body">
@@ -400,14 +407,15 @@
           <div class="text-secondary small text-uppercase">Cobrado</div>
           <div class="fs-4 fw-bold" id="cCobrado">$0</div></div></div></div>
         <div class="col"><div class="card h-100 text-center"><div class="card-body">
-          <div class="text-secondary small text-uppercase">Por cobrar</div>
+          <div class="text-secondary small text-uppercase">Por cobrar hoy</div>
           <div class="fs-4 fw-bold text-warning" id="cPorCobrar">$0</div></div></div></div>
         <div class="col"><div class="card h-100 text-center"><div class="card-body">
-          <div class="text-secondary small text-uppercase">A maquila</div>
+          <div class="text-secondary small text-uppercase">Pagado a maquila</div>
           <div class="fs-4 fw-bold text-danger" id="cMaquila">$0</div></div></div></div>
         <div class="col"><div class="card h-100 text-center"><div class="card-body">
-          <div class="text-secondary small text-uppercase">Utilidad</div>
-          <div class="fs-4 fw-bold text-success" id="cUtilidad">$0</div></div></div></div>
+          <div class="text-secondary small text-uppercase">Utilidad en caja</div>
+          <div class="fs-4 fw-bold text-success" id="cUtilidad">$0</div>
+          <div class="small text-secondary">Si cobran todo: <span id="cUtilidadTotal">$0</span></div></div></div></div>
       </div>
 
       <!-- Cuando dejan el anticipo y no regresan, la maquila ya se pagó y no

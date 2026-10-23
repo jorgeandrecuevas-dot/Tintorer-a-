@@ -138,7 +138,15 @@ export function dibujarMaquila() {
 document.getElementById('btnEnviar').addEventListener('click', function () {
   const envio = porEnviar();
   if (envio.length === 0) { avisar('No hay notas para enviar.'); return; }
-  envio.forEach(function (n) { ponerEstatus(n, 'maquila'); delete n.apartada; });
+  const salida = proximaSalida(new Date());
+  envio.forEach(function (n) {
+    ponerEstatus(n, 'maquila');
+    delete n.apartada;
+    // Cuándo se espera que regrese. Un cobertor tarda un ciclo más.
+    let regreso = regresoDe(salida);
+    if (n.tardaMas) regreso = regresoDe(regreso);
+    n.regresaISO = regreso.toISOString();
+  });
   if (!guardarNotas()) return;
   dibujarMaquila();
   avisar(envio.length + (envio.length === 1 ? ' nota salió' : ' notas salieron') + ' a la maquila.');

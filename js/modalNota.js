@@ -2,7 +2,7 @@
 import { borrarImagenes, leerImagen } from './almacen.js';
 import { avisar } from './avisos.js';
 import { imprimirTicket } from './documentos.js';
-import { ETAPAS, NOTAS, guardarNotas, imagenesDeNota, ponerEstatus, reemplazarNotas } from './notas.js';
+import { ETAPAS, NOTAS, guardarNotas, imagenesDeNota, ponerEstatus, reemplazarNotas, registrarPago } from './notas.js';
 import { pesos } from './utilidades.js';
 import { avisarPorWhatsApp } from './whatsapp.js';
 
@@ -123,8 +123,9 @@ document.getElementById('btnGuardarNota').addEventListener('click', function () 
 
   const recibido = Math.min(notaAbierta.total,
     Math.max(0, parseFloat(document.getElementById('edRecibido').value) || 0));
-  notaAbierta.pagado = recibido;
-  notaAbierta.saldo = notaAbierta.total - recibido;
+  // Corregir lo recibido queda como un pago de ajuste, con su fecha: el corte
+  // sabe qué pasó y no solo cuánto hay
+  registrarPago(notaAbierta, recibido - notaAbierta.pagado, 'ajuste');
 
   if (!guardarNotas()) return;
 

@@ -67,7 +67,39 @@ export function conId(n) {
   return n;
 }
 
-export let NOTAS = leerNotas().map(conId);
+/* Cada pago lleva su fecha. Una nota guardaba un solo "pagado" y no se podía
+   saber cuándo entró el dinero ni sacar lo cobrado hoy. Las notas viejas se
+   arreglan solas: su pagado se vuelve un pago con la fecha de la nota. */
+let notasArregladas = false;
+export function conPagos(n) {
+  if (!Array.isArray(n.pagos)) {
+    notasArregladas = true;
+    const f = n.entregadaEl || n.creada || new Date().toISOString();
+    n.pagos = n.pagado > 0
+      ? [{ f: f, monto: n.pagado, tipo: n.saldo > 0 ? 'anticipo' : 'liquidacion' }]
+      : [];
+  }
+  return n;
+}
+
+export function normalizarNota(n) {
+  return conPagos(conId(n));
+}
+
+// Un pago nuevo. El pagado y el saldo salen de sumar los pagos, así que no se
+// pueden desacomodar. Un ajuste puede ser negativo: corregir lo que se había
+// escrito de más.
+export function registrarPago(n, monto, tipo) {
+  if (!monto) return;
+  n.pagos.push({ f: new Date().toISOString(), monto: monto, tipo: tipo });
+  n.pagado = Math.max(0, n.pagos.reduce(function (s, p) { return s + p.monto; }, 0));
+  n.saldo = n.total - n.pagado;
+}
+
+export let NOTAS = leerNotas().map(normalizarNota);
+
+// Si hubo que arreglar notas viejas, se guardan ya arregladas
+if (notasArregladas) escribirNotas(NOTAS);
 
 // Desde fuera no se puede asignar a NOTAS: se pide aquí
 export function reemplazarNotas(lista) {
@@ -82,6 +114,9 @@ export function ponerEstatus(n, estatus) {
   else delete n.listaDesde;
   if (estatus === 'entregada') n.entregadaEl = new Date().toISOString();
   else delete n.entregadaEl;
+  // A la maquila se le paga al mandar la ropa. El día se queda aunque la nota
+  // siga de largo, para el corte.
+  if (estatus === 'maquila' && !n.enviadaEl) n.enviadaEl = new Date().toISOString();
 }
 
 /* La ropa que nadie recoge.
@@ -118,23 +153,30 @@ function haceDias(dias) {
 // desde el Corte, cuando se quiere enseñar cómo se ve trabajando.
 export function notasDeEjemplo() {
   const hoy = new Date();
+  // dias: hace cuántos días se levantó. Cada pago dice hace cuántos días entró.
   return [
-    { folio: '0479', cliente: 'Carmen Ruiz',  piezas: 1, total: 230, costo: 120,
-      pagado: 115, saldo: 115, estatus: 'maquila',   detalle: 'Edredón queen' },
-    { folio: '0480', cliente: 'Pedro Lara',   piezas: 3, total: 210, costo: 120,
-      pagado: 210, saldo: 0,   estatus: 'devuelta',  detalle: 'Camisa ×3' },
-    { folio: '0477', cliente: 'Sofía Peña',   piezas: 1, total: 180, costo: 90,
-      pagado: 90,  saldo: 90,  estatus: 'lista',     detalle: 'Vestido de fiesta' },
-    { folio: '0475', cliente: 'Hugo Mena',    piezas: 1, total: 220, costo: 160,
-      pagado: 220, saldo: 0,   estatus: 'entregada', detalle: 'Chamarra de piel' }
-  ].map(function (n) {
-    n.entrega = textoFecha(fechaEntrega(hoy, false));
-    n.observaciones = '';
-    n.fotos = [];
-    n.creada = haceDias(25);
-    // Una de las notas lleva 20 días embolsada: así se ve cómo marca la ropa
-    // que nadie recoge
-    if (n.estatus === 'lista') n.listaDesde = haceDias(20);
+    { folio: '0479', cliente: 'Carmen Ruiz', piezas: 1, total: 230, costo: 120, estatus: 'maquila',
+      detalle: 'Edredón queen', dias: 3, enviada: 2, pagos: [[3, 115, 'anticipo']] },
+    { folio: '0480', cliente: 'Pedro Lara', piezas: 3, total: 210, costo: 120, estatus: 'devuelta',
+      detalle: 'Camisa ×3', dias: 4, enviada: 3, pagos: [[4, 210, 'liquidacion']] },
+    // Esta lleva 20 días embolsada: así se ve cómo marca la ropa que nadie recoge
+    { folio: '0477', cliente: 'Sofía Peña', piezas: 1, total: 180, costo: 90, estatus: 'lista',
+      detalle: 'Vestido de fiesta', dias: 25, enviada: 24, lista: 20, pagos: [[25, 90, 'anticipo']] },
+    { folio: '0475', cliente: 'Hugo Mena', piezas: 1, total: 220, costo: 160, estatus: 'entregada',
+      detalle: 'Chamarra de piel', dias: 6, enviada: 5, entregada: 1,
+      pagos: [[6, 110, 'anticipo'], [1, 110, 'liquidacion']] }
+  ].map(function (e) {
+    const n = {
+      folio: e.folio, cliente: e.cliente, piezas: e.piezas, total: e.total, costo: e.costo,
+      estatus: e.estatus, detalle: e.detalle, observaciones: '', fotos: [],
+      entrega: textoFecha(fechaEntrega(hoy, false)),
+      creada: haceDias(e.dias), enviadaEl: haceDias(e.enviada),
+      pagos: e.pagos.map(function (p) { return { f: haceDias(p[0]), monto: p[1], tipo: p[2] }; })
+    };
+    n.pagado = n.pagos.reduce(function (s, p) { return s + p.monto; }, 0);
+    n.saldo = n.total - n.pagado;
+    if (e.lista) n.listaDesde = haceDias(e.lista);
+    if (e.entregada) n.entregadaEl = haceDias(e.entregada);
     return conId(n);
   });
 }

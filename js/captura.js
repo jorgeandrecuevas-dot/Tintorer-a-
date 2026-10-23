@@ -307,7 +307,7 @@ export function cuentaNota() {
   pagado = Math.min(pagado, precio);
 
   return { precio: precio, costo: costo, piezas: piezas, renglones: renglones,
-           pagado: pagado, saldo: precio - pagado,
+           pagado: pagado, saldo: precio - pagado, tardaMas: tardaMas,
            entrega: fechaEntrega(new Date(), tardaMas, horaDeSalida()) };
 }
 
@@ -419,6 +419,10 @@ function terminarDeGuardar(folio, c, firma, fotosGuardadas) {
     costo: c.costo,
     pagado: c.pagado,
     saldo: c.saldo,
+    pagos: c.pagado > 0
+      ? [{ f: new Date().toISOString(), monto: c.pagado, tipo: c.pagado >= c.precio ? 'liquidacion' : 'anticipo' }]
+      : [],
+    tardaMas: c.tardaMas,
     observaciones: inpObserva.value.trim(),
     detalle: c.renglones.map(function (r) { return r.texto; }).join(' · '),
     entrega: textoFecha(c.entrega),

@@ -4,23 +4,30 @@ import { avisar } from './avisos.js';
 import { registrarVista } from './navegacion.js';
 import { DIAS_SIN_RECOGER, ETAPAS, NOTAS, guardarNotas, notasDeEjemplo, reemplazarNotas, sinRecoger } from './notas.js';
 import { mostrarLista } from './tablero.js';
-import { pesos } from './utilidades.js';
+import { resumenCorte, textoRango } from './resumen.js';
+import { pesos, pesosConSigno } from './utilidades.js';
 
 /* -------------------------------------------------------------------------
    10. CORTE
    ------------------------------------------------------------------------- */
 
-export function dibujarCorte() {
-  const facturado = NOTAS.reduce(function (s, n) { return s + n.total;  }, 0);
-  const cobrado   = NOTAS.reduce(function (s, n) { return s + n.pagado; }, 0);
-  const porCobrar = NOTAS.reduce(function (s, n) { return s + n.saldo;  }, 0);
-  const maquila   = NOTAS.reduce(function (s, n) { return s + n.costo;  }, 0);
+// Cuál periodo se está viendo. Arranca en la semana: es lo que cuenta el ciclo.
+let periodo = 'semana';
 
-  document.getElementById('cFacturado').textContent = pesos(facturado);
-  document.getElementById('cCobrado').textContent   = pesos(cobrado);
-  document.getElementById('cPorCobrar').textContent = pesos(porCobrar);
-  document.getElementById('cMaquila').textContent   = pesos(maquila);
-  document.getElementById('cUtilidad').textContent  = pesos(facturado - maquila);
+export function dibujarCorte() {
+  const r = resumenCorte(NOTAS, periodo);
+
+  document.querySelectorAll('#periodosCorte [data-periodo]').forEach(function (b) {
+    b.classList.toggle('active', b.dataset.periodo === periodo);
+  });
+  document.getElementById('rangoCorte').textContent = textoRango(r);
+
+  document.getElementById('cFacturado').textContent = pesos(r.facturado);
+  document.getElementById('cCobrado').textContent   = pesos(r.cobrado);
+  document.getElementById('cPorCobrar').textContent = pesos(r.porCobrar);
+  document.getElementById('cMaquila').textContent   = pesos(r.maquila);
+  document.getElementById('cUtilidad').textContent  = pesosConSigno(r.utilidadCaja);
+  document.getElementById('cUtilidadTotal').textContent = pesosConSigno(r.utilidadSiCobran);
 
   // Lo que dejaron de anticipo y no volvieron a recoger, contra lo que ya se
   // le pagó a la maquila por esa ropa
@@ -47,7 +54,7 @@ export function dibujarCorte() {
   const cuerpo = document.getElementById('tablaCorte');
   cuerpo.innerHTML = '';
 
-  NOTAS.forEach(function (n) {
+  r.notas.forEach(function (n) {
     const etapa = ETAPAS.find(function (e) { return e.id === n.estatus; });
     const tr = document.createElement('tr');
 
@@ -117,3 +124,10 @@ document.getElementById('btnVerSinRecoger').addEventListener('click', function (
 });
 
 registrarVista('corte', dibujarCorte);
+
+document.querySelectorAll('#periodosCorte [data-periodo]').forEach(function (boton) {
+  boton.addEventListener('click', function () {
+    periodo = boton.dataset.periodo;
+    dibujarCorte();
+  });
+});

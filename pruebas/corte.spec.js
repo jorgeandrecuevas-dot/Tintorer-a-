@@ -7,18 +7,65 @@ import { join } from 'node:path';
 // pasan bien al navegador. Los archivos de apoyo van con nombre simple.
 const rutaTemporal = (info, nombre) => join(tmpdir(), `tintoreria-${info.project.name}-${info.workerIndex}-${nombre}`);
 
-test('el corte suma lo facturado, cobrado, por cobrar, la maquila y la utilidad', async ({ page }) => {
+test('el corte suma lo facturado, lo cobrado, lo que debe, la maquila y lo que quedó en caja', async ({ page }) => {
   await abrirLimpia(page);
   await capturarNota(page, { folio: '0501', cliente: 'Marta', prenda: 'camisa', cantidad: 4 });   // $280, deja $140
-  await irA(page, 'maquila');
-  await page.click('#btnEnviar');
   await irA(page, 'corte');
   await expect(page.locator('#cFacturado')).toHaveText('$280');
   await expect(page.locator('#cCobrado')).toHaveText('$140');
   await expect(page.locator('#cPorCobrar')).toHaveText('$140');
+  await expect(page.locator('#cMaquila')).toHaveText('$0');            // todavía no se manda
+  await expect(page.locator('#cUtilidad')).toHaveText('$140');
+
+  // a la maquila se le paga al mandar la ropa
+  await irA(page, 'maquila');
+  await page.click('#btnEnviar');
+  await irA(page, 'corte');
   await expect(page.locator('#cMaquila')).toHaveText('$160');
-  await expect(page.locator('#cUtilidad')).toHaveText('$120');
+  await expect(page.locator('#cUtilidad')).toHaveText('−$20');         // pagó más de lo que cobró
+  await expect(page.locator('#cUtilidadTotal')).toHaveText('$120');    // cuando cobren el resto
   await expect(page.locator('#tablaCorte tr')).toHaveCount(1);
+});
+
+test('el corte se ve por hoy, esta semana, este mes o todo', async ({ page }) => {
+  await abrirLimpia(page);
+  await cargarEjemplos(page);
+  await irA(page, 'corte');
+
+  // los ejemplos se levantaron hace 3, 4, 6 y 25 días
+  await page.click('[data-periodo="todo"]');
+  await expect(page.locator('#rangoCorte')).toHaveText('Desde la primera nota');
+  await expect(page.locator('#cFacturado')).toHaveText('$840');           // 230 + 210 + 180 + 220
+  await expect(page.locator('#cCobrado')).toHaveText('$635');             // 115 + 210 + 90 + 220
+  await expect(page.locator('#cMaquila')).toHaveText('$490');             // 120 + 120 + 90 + 160
+  await expect(page.locator('#cUtilidad')).toHaveText('$145');           // 635 − 490
+  await expect(page.locator('#tablaCorte tr')).toHaveCount(4);
+
+  await page.click('[data-periodo="hoy"]');
+  await expect(page.locator('#cFacturado')).toHaveText('$0');
+  await expect(page.locator('#cCobrado')).toHaveText('$0');
+  await expect(page.locator('#tablaCorte tr')).toHaveCount(0);
+  await expect(page.locator('#cPorCobrar')).toHaveText('$205');           // lo que se debe hoy no es del periodo
+
+  await page.click('[data-periodo="mes"]');
+  const mes = await page.locator('#rangoCorte').textContent();
+  expect(mes).toMatch(/ al /);
+  await expect(page.locator('#periodosCorte .active')).toHaveText('Este mes');
+});
+
+test('el conteo impreso trae el periodo y las mismas cuentas', async ({ page }) => {
+  await abrirLimpia(page);
+  await cargarEjemplos(page);
+  await irA(page, 'corte');
+  await page.evaluate(() => { window.print = () => {}; });
+  await page.click('[data-periodo="todo"]');
+  await page.click('#btnConteo');
+  const hoja = page.locator('#hoja');
+  await expect(hoja).toContainText('Todo');
+  await expect(hoja).toContainText('$840');
+  await expect(hoja).toContainText('Utilidad en caja');
+  await expect(hoja).toContainText('$145');
+  await expect(hoja).toContainText('Si cobran todo');
 });
 
 test('la ropa sin recoger se cuenta con lo que costó', async ({ page }) => {
