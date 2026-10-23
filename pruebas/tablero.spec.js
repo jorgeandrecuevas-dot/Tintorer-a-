@@ -164,3 +164,15 @@ test('si el almacén falla, la pantalla lo dice en vez de fingir que guardó', a
   await fila(page, '0480').getByRole('button', { name: 'Ya está embolsada' }).click();
   await expect(page.locator('#textoAviso')).toContainText('No se pudo guardar');
 });
+
+test('en la lista de entregas el título de la nota nunca se aplasta', async ({ page }) => {
+  await abrirLimpia(page);
+  await cargarEjemplos(page);
+  await irA(page, 'tablero');
+  await page.click('#modoLista');
+  const caja = await fila(page, '0477').locator('.fw-semibold').first().boundingBox();
+  expect(caja.width).toBeGreaterThan(120);
+  expect(caja.height).toBeLessThan(30);                      // una sola línea
+  const botones = await fila(page, '0477').getByRole('button').all();
+  for (const b of botones) await expect(b).toBeInViewport();
+});

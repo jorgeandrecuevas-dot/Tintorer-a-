@@ -273,7 +273,7 @@ AirDrop, correo) en un toque.
 | Respaldo por la hoja de compartir | Falta |
 | Diseño 1 a 4 y 6 | Hecho |
 | Diseño 5, menos texto | Hecho en lo principal: ninguna pantalla abre con párrafo |
-| Código 1 a 7 | Hecho. Hay 28 módulos en `js/`, más de 440 pruebas y CI |
+| Código 1 a 7 | Hecho. Hay 28 módulos en `js/`, 453 pruebas y CI |
 
 Dos cosas de código que cambian cómo se lee el proyecto:
 

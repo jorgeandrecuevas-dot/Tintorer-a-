@@ -263,7 +263,7 @@ export function dibujarTablero() {
 function filaEntrega(n) {
   const hecha = n.estatus === 'entregada';
   const li = document.createElement('li');
-  li.className = 'list-group-item nota-tocable d-flex align-items-center gap-3' +
+  li.className = 'list-group-item nota-tocable d-flex flex-wrap align-items-center gap-2 gap-md-3' +
                  (hecha ? ' fila-hecha' : '');
   li.tabIndex = 0;
   li.setAttribute('role', 'button');
@@ -279,7 +279,7 @@ function filaEntrega(n) {
   li.appendChild(caja);
 
   const centro = document.createElement('div');
-  centro.className = 'flex-grow-1 min-w-0';
+  centro.className = 'centro-entrega';
   const titulo = document.createElement('div');
   titulo.className = 'fw-semibold';
   titulo.textContent = n.folio + ' · ' + n.cliente;
@@ -322,7 +322,7 @@ function filaEntrega(n) {
 
   if (n.estatus === 'lista') {
     const botones = document.createElement('div');
-    botones.className = 'd-flex gap-2 flex-shrink-0';
+    botones.className = 'd-flex gap-2 flex-shrink-0 ms-auto';
 
     const avisarle = document.createElement('button');
     avisarle.type = 'button';

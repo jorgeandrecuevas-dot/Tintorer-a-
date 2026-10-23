@@ -193,6 +193,12 @@ body {
 }
 
 /* Las notas del tablero se tocan para abrirlas */
+.centro-entrega {
+  /* Con dos botones al lado, el título se aplastaba a una letra por renglón en
+     el teléfono. Con esta base, si no cabe, los botones bajan a su propio renglón. */
+  flex: 1 1 11rem;
+  min-width: 0;
+}
 .nota-tocable {
   cursor: pointer;
 }
