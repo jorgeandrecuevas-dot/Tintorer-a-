@@ -10,13 +10,33 @@
    cuando la red falla. Así nadie tiene que acordarse de versionar la caché.
 */
 
-const CACHE = 'tintoreria-v1';
+const CACHE = 'tintoreria-v2';
 
 const ARCHIVOS = [
   './',
   './index.html',
   './styles.css',
   './script.js',
+  './js/ajustes.js',
+  './js/almacen.js',
+  './js/avisos.js',
+  './js/captura.js',
+  './js/catalogo.js',
+  './js/ciclo.js',
+  './js/corte.js',
+  './js/documentos.js',
+  './js/entrega.js',
+  './js/firmas.js',
+  './js/galeria.js',
+  './js/maquila.js',
+  './js/modalNota.js',
+  './js/navegacion.js',
+  './js/notas.js',
+  './js/respaldo.js',
+  './js/sinred.js',
+  './js/tablero.js',
+  './js/utilidades.js',
+  './js/whatsapp.js',
   './vendor/bootstrap.min.css',
   './vendor/bootstrap.bundle.min.js',
   './manifest.webmanifest',
