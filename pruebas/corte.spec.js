@@ -1,4 +1,4 @@
-import { test, expect, abrirLimpia, irA, capturarNota, notasGuardadas, cargarEjemplos, aceptarDialogos } from './ayuda.js';
+import { test, expect, abrirLimpia, irA, capturarNota, notasGuardadas, cargarEjemplos, confirmarCuadro } from './ayuda.js';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -87,20 +87,19 @@ test('la ropa sin recoger se cuenta con lo que costó', async ({ page }) => {
 
 test('los ejemplos no se duplican y borrar todo deja la tablet en cero', async ({ page }) => {
   await abrirLimpia(page);
-  aceptarDialogos(page);
   await cargarEjemplos(page);
   await page.click('#btnEjemplos');
   await expect(page.locator('#textoAviso')).toHaveText('Los ejemplos ya están cargados.');
   expect(await notasGuardadas(page)).toHaveLength(4);
 
   await page.click('#btnBorrarTodo');
+  await confirmarCuadro(page);
   await expect.poll(async () => (await notasGuardadas(page)).length).toBe(0);
   await expect(page.locator('#textoAviso')).toHaveText('Listo, la tablet quedó en cero.');
 });
 
 test('el respaldo baja un archivo y restaurarlo devuelve todo, con sus imágenes', async ({ page }, info) => {
   await abrirLimpia(page);
-  aceptarDialogos(page);
   await capturarNota(page, { folio: '1101', cliente: 'Marta Díaz', telefono: '33 1234 5678',
                              observaciones: 'botón flojo', firma: true, fotos: 1 });
   await cargarEjemplos(page);
@@ -116,9 +115,11 @@ test('el respaldo baja un archivo y restaurarlo devuelve todo, con sus imágenes
   await expect(page.locator('#avisoRespaldo')).toContainText('5 notas');
 
   await page.click('#btnBorrarTodo');
+  await confirmarCuadro(page);
   await expect.poll(async () => (await notasGuardadas(page)).length).toBe(0);
 
   await page.setInputFiles('#archivoRespaldo', ruta);
+  await confirmarCuadro(page);
   await expect.poll(async () => (await notasGuardadas(page)).length).toBe(5);
   await expect(page.locator('#avisoRespaldo')).toContainText('5 notas restauradas');
 

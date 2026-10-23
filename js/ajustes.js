@@ -33,3 +33,18 @@ campoSucursal.addEventListener('input', function () {
   } catch (e) { /* sin almacén no se guarda, pero se ve */ }
   pintarSucursal();
 });
+
+
+// Quién está atendiendo. Queda en el historial de cada nota. Se escribe en
+// Ajustes; si está vacío, el historial no pone nombre.
+const LLAVE_QUIEN = 'tintoreria.quien';
+
+export function quienAtiende() {
+  try { return localStorage.getItem(LLAVE_QUIEN) || ''; } catch (e) { return ''; }
+}
+export function ponerQuienAtiende(nombre) {
+  try {
+    if (nombre) localStorage.setItem(LLAVE_QUIEN, nombre);
+    else localStorage.removeItem(LLAVE_QUIEN);
+  } catch (e) { /* sin almacén no se guarda */ }
+}

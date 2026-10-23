@@ -1,5 +1,5 @@
 // Cada pago lleva su fecha. Así el corte sabe cuánto entró hoy y no solo cuánto hay.
-import { test, expect, abrirLimpia, irA, capturarNota, notasGuardadas, cargarEjemplos, firmar, sembrar } from './ayuda.js';
+import { test, expect, abrirLimpia, irA, capturarNota, notasGuardadas, cargarEjemplos, firmar, sembrar, confirmarCuadro } from './ayuda.js';
 import { writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -100,11 +100,11 @@ test('las notas que no traían pagos se arreglan solas y el corte las cuenta', a
 
 test('un respaldo de la versión anterior se restaura con sus pagos arreglados', async ({ page }, info) => {
   await abrirLimpia(page);
-  page.on('dialog', (d) => d.accept());
   const ruta = join(tmpdir(), `tintoreria-${info.project.name}-${info.workerIndex}-viejo.json`);
   writeFileSync(ruta, JSON.stringify({ version: 1, fecha: new Date().toISOString(), notas: [vieja()], imagenes: {} }));
   await irA(page, 'corte');
   await page.setInputFiles('#archivoRespaldo', ruta);
+  await confirmarCuadro(page);
   await expect.poll(async () => (await notasGuardadas(page)).length).toBe(1);
   const [n] = await notasGuardadas(page);
   expect(n.pagos).toHaveLength(1);

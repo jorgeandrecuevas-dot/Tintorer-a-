@@ -17,6 +17,7 @@
 import './js/navegacion.js';
 import './js/ajustes.js';
 import './js/notas.js';
+import './js/confirmar.js';
 import './js/galeria.js';
 import './js/firmas.js';
 import './js/captura.js';

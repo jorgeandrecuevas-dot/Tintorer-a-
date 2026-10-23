@@ -1,4 +1,4 @@
-import { test, expect, abrirLimpia, irA, capturarNota, firmar, notasGuardadas, cargarEjemplos, espiarOpen, direccionesAbiertas, aceptarDialogos } from './ayuda.js';
+import { test, expect, abrirLimpia, irA, capturarNota, firmar, notasGuardadas, cargarEjemplos, espiarOpen, direccionesAbiertas } from './ayuda.js';
 
 const fila = (page, folio) => page.locator('.nota-tocable', { hasText: folio });
 // Se toca el título: en pantallas angostas el centro de la fila cae sobre un botón
@@ -151,15 +151,6 @@ test.describe('corregir una nota', () => {
     await page.getByRole('button', { name: /entregar/i }).click();
     await expect(page.locator('#modalEntrega')).toHaveClass(/show/);
     await expect(page.locator('#modalNota')).toBeHidden();
-  });
-
-  test('se borra pidiendo confirmación', async ({ page }) => {
-    aceptarDialogos(page);
-    await page.locator('.nota-tocable').click();
-    await expect(page.locator('#modalNota')).toBeVisible();
-    await page.click('#btnBorrarNota');
-    await expect.poll(async () => (await notasGuardadas(page)).length).toBe(0);
-    await expect(page.locator('#tableroVacio')).toBeVisible();
   });
 });
 

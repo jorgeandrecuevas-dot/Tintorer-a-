@@ -356,7 +356,7 @@ let folioConfirmado = null;
 const avisoFolio = document.getElementById('avisoFolio');
 
 function notaConFolio(folio) {
-  return NOTAS.find(function (n) { return n.folio === folio; });
+  return NOTAS.find(function (n) { return !n.cancelada && n.folio === folio; });
 }
 
 function pintarAvisoFolio() {
@@ -433,7 +433,8 @@ function terminarDeGuardar(folio, c, firma, fotosGuardadas) {
     firmaRecibido: firma,
     fotos: seFueronFotos,
     estatus: 'recibida',
-    creada: new Date().toISOString()
+    creada: new Date().toISOString(),
+    historial: [{ f: new Date().toISOString(), t: 'Nota levantada' }]
   }));
 
   if (!escribirNotas(NOTAS)) {

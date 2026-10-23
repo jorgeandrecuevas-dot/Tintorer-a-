@@ -1,6 +1,6 @@
 /* Avisarle al cliente que su ropa ya está, por WhatsApp. */
 import { avisar } from './avisos.js';
-import { guardarNotas } from './notas.js';
+import { anotar, guardarNotas } from './notas.js';
 import { pesos } from './utilidades.js';
 
 /* -------------------------------------------------------------------------
@@ -45,5 +45,6 @@ export function avisarPorWhatsApp(n) {
   if (!ventana) { avisar('No se pudo abrir WhatsApp.'); return; }
 
   n.avisadaEl = new Date().toISOString();
+  anotar(n, 'Se le avisó por WhatsApp');
   guardarNotas();
 }

@@ -321,6 +321,9 @@
       <!-- La misma ropa, en lista: lo que falta por entregar y lo que ya salió -->
       <div class="d-none" id="listaEntregas"></div>
 
+      <!-- Las notas canceladas no estorban en las columnas, pero no se pierden -->
+      <div class="d-none mt-3" id="cajaCanceladas"></div>
+
       <div class="text-center text-secondary py-5 d-none" id="sinResultadosNota">
         <p class="mb-0">Ninguna nota dice así.</p>
       </div>
@@ -502,6 +505,33 @@
   </main>
 </div>
 
+<!-- ¿Seguro? Reemplaza al confirm() del navegador -->
+<div class="modal fade" id="modalConfirmar" tabindex="-1" aria-hidden="true" aria-labelledby="tituloConfirmar">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="tituloConfirmar">¿Seguro?</h2>
+        <button class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-0" id="textoConfirmar"></p>
+        <div class="mt-3 d-none" id="bloqueMotivo">
+          <label for="motivoConfirmar" class="form-label fw-semibold">Motivo</label>
+          <input type="text" id="motivoConfirmar" class="form-control" maxlength="80" autocomplete="off">
+        </div>
+        <div class="form-check mt-3 d-none" id="bloqueCasilla">
+          <input class="form-check-input" type="checkbox" id="casillaConfirmar">
+          <label class="form-check-label" for="casillaConfirmar" id="etiquetaCasilla"></label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">No</button>
+        <button class="btn btn-danger" id="btnSiConfirmar">Sí</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Ver y corregir una nota: se abre al tocarla en el tablero -->
 <div class="modal fade" id="modalNota" tabindex="-1" aria-hidden="true" aria-labelledby="tituloNota">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
@@ -511,6 +541,7 @@
         <button class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
+        <div class="alert alert-secondary d-none" id="edBannerCancelada" role="status"></div>
         <div class="row g-3">
 
           <div class="col-12 col-md-6">
@@ -571,15 +602,20 @@
               <div class="fw-semibold mb-2">Firmas</div>
               <div class="row g-2" id="edFirmas"></div>
             </div>
+
+            <details class="mt-3" id="edBloqueHistorial">
+              <summary class="fw-semibold">Historial</summary>
+              <ul class="list-unstyled small mb-0 mt-2" id="edHistorial"></ul>
+            </details>
           </div>
 
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline-danger me-auto" id="btnBorrarNota">Borrar nota</button>
+        <button class="btn btn-outline-danger me-auto" id="btnCancelarNota">Cancelar nota</button>
         <button class="btn btn-outline-success" id="btnAvisarNota">Avisarle</button>
         <button class="btn btn-outline-primary" id="btnTicketNota">Imprimir ticket</button>
-        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
         <button class="btn btn-primary" id="btnGuardarNota">Guardar cambios</button>
       </div>
     </div>

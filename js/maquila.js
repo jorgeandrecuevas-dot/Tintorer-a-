@@ -92,11 +92,11 @@ function renglonMaquila(n, conConteo) {
 }
 
 export function porEnviar() {
-  return NOTAS.filter(function (n) { return n.estatus === 'recibida'; });
+  return NOTAS.filter(function (n) { return !n.cancelada && n.estatus === 'recibida'; });
 }
 
 function enMaquila() {
-  return NOTAS.filter(function (n) { return n.estatus === 'maquila'; });
+  return NOTAS.filter(function (n) { return !n.cancelada && n.estatus === 'maquila'; });
 }
 
 export function dibujarMaquila() {

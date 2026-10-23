@@ -1,6 +1,7 @@
 import { avisar } from './avisos.js';
 /* Las notas guardadas: dónde viven, cómo se escriben y las reglas de cada etapa. */
 import { esImagenAdentro, guardarImagen } from './almacen.js';
+import { quienAtiende } from './ajustes.js';
 import { fechaEntrega, textoFecha } from './ciclo.js';
 
 /* -------------------------------------------------------------------------
@@ -82,8 +83,55 @@ export function conPagos(n) {
   return n;
 }
 
+/* El historial de cada nota: qué pasó, cuándo y quién atendía. Sirve para
+   saber por qué una nota cambió sin tener que preguntarle a nadie. Son las
+   últimas 60 cosas: más que eso ya no es útil. */
+const MAXIMO_HISTORIAL = 60;
+
+export function anotar(n, que) {
+  if (!Array.isArray(n.historial)) n.historial = [];
+  const entrada = { f: new Date().toISOString(), t: que };
+  const quien = quienAtiende();
+  if (quien) entrada.q = quien;
+  n.historial.push(entrada);
+  if (n.historial.length > MAXIMO_HISTORIAL) n.historial.splice(0, n.historial.length - MAXIMO_HISTORIAL);
+}
+
+function conHistorial(n) {
+  if (!Array.isArray(n.historial)) {
+    n.historial = [];
+    if (n.creada) n.historial.push({ f: n.creada, t: 'Nota levantada' });
+    notasArregladas = true;
+  }
+  return n;
+}
+
 export function normalizarNota(n) {
-  return conPagos(conId(n));
+  return conHistorial(conPagos(conId(n)));
+}
+
+// Las notas canceladas se quedan guardadas, pero no cuentan en las pantallas
+export function vivas() {
+  return NOTAS.filter(function (n) { return !n.cancelada; });
+}
+
+/* Cancelar en lugar de borrar. Una nota borrada desaparecía sin rastro y el
+   corte cambiaba solo. Cancelada se queda con su motivo y su historial.
+   Si se devolvió lo cobrado, queda como un pago negativo. */
+export function cancelarNota(n, motivo, devolverCobrado) {
+  if (devolverCobrado && n.pagado > 0) registrarPago(n, -n.pagado, 'devolucion');
+  n.cancelada = true;
+  n.canceladaEl = new Date().toISOString();
+  n.motivo = motivo || '';
+  delete n.apartada;
+  anotar(n, 'Cancelada' + (motivo ? ': ' + motivo : ''));
+}
+
+export function reactivarNota(n) {
+  n.cancelada = false;
+  delete n.canceladaEl;
+  delete n.motivo;
+  anotar(n, 'Reactivada');
 }
 
 // Un pago nuevo. El pagado y el saldo salen de sumar los pagos, así que no se
@@ -92,6 +140,7 @@ export function normalizarNota(n) {
 export function registrarPago(n, monto, tipo) {
   if (!monto) return;
   n.pagos.push({ f: new Date().toISOString(), monto: monto, tipo: tipo });
+  anotar(n, (monto < 0 ? 'Se devolvieron $' + (-monto) : 'Pago de $' + monto) + ' (' + tipo + ')');
   n.pagado = Math.max(0, n.pagos.reduce(function (s, p) { return s + p.monto; }, 0));
   n.saldo = n.total - n.pagado;
 }
@@ -109,6 +158,10 @@ export function reemplazarNotas(lista) {
 // Cambia la nota de etapa y anota desde cuándo está embolsada. Ese día es el
 // que cuenta para saber cuánto lleva esperando que pasen por su ropa.
 export function ponerEstatus(n, estatus) {
+  if (n.estatus !== estatus) {
+    const etapa = ETAPAS.find(function (e) { return e.id === estatus; });
+    anotar(n, 'Pasó a ' + (etapa ? etapa.nombre : estatus));
+  }
   n.estatus = estatus;
   if (estatus === 'lista') n.listaDesde = new Date().toISOString();
   else delete n.listaDesde;
@@ -134,6 +187,7 @@ export function diasEmbolsada(n) {
 }
 
 export function sinRecoger(n) {
+  if (n.cancelada) return false;
   const d = diasEmbolsada(n);
   return d !== null && d >= DIAS_SIN_RECOGER;
 }
@@ -175,6 +229,7 @@ export function notasDeEjemplo() {
     };
     n.pagado = n.pagos.reduce(function (s, p) { return s + p.monto; }, 0);
     n.saldo = n.total - n.pagado;
+    n.historial = [{ f: n.creada, t: 'Nota levantada' }];
     if (e.lista) n.listaDesde = haceDias(e.lista);
     if (e.entregada) n.entregadaEl = haceDias(e.entregada);
     return conId(n);

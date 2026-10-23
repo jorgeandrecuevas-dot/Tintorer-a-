@@ -1,6 +1,7 @@
 /* El corte: lo cobrado contra lo pagado a la maquila, y la ropa sin recoger. */
 import { vaciarImagenes } from './almacen.js';
 import { avisar } from './avisos.js';
+import { confirmar } from './confirmar.js';
 import { registrarVista } from './navegacion.js';
 import { DIAS_SIN_RECOGER, ETAPAS, NOTAS, guardarNotas, notasDeEjemplo, reemplazarNotas, sinRecoger } from './notas.js';
 import { mostrarLista } from './tablero.js';
@@ -72,8 +73,8 @@ export function dibujarCorte() {
 
     const td = document.createElement('td');
     const marca = document.createElement('span');
-    marca.className = 'badge text-bg-' + (etapa ? etapa.color : 'secondary');
-    marca.textContent = etapa ? etapa.nombre : n.estatus;
+    marca.className = 'badge text-bg-' + (n.cancelada ? 'dark' : etapa ? etapa.color : 'secondary');
+    marca.textContent = n.cancelada ? 'Cancelada' : etapa ? etapa.nombre : n.estatus;
     td.appendChild(marca);
     tr.appendChild(td);
 
@@ -107,16 +108,19 @@ document.getElementById('btnBorrarTodo').addEventListener('click', function () {
   if (NOTAS.length === 0) { avisar('No hay nada que borrar.'); return; }
 
   // Se borra la libreta completa del negocio: hay que preguntar
-  const seguro = window.confirm(
-    'Se van a borrar las ' + NOTAS.length + ' notas guardadas en esta tablet.\n\n' +
-    'Esto no se puede deshacer. ¿Seguro?');
-  if (!seguro) return;
-
-  reemplazarNotas([]);
-  guardarNotas();
-  vaciarImagenes();
-  dibujarCorte();
-  avisar('Listo, la tablet quedó en cero.');
+  confirmar({
+    titulo: 'Borrar todo',
+    texto: 'Se van a borrar las ' + NOTAS.length + ' notas guardadas en esta tablet. ' +
+           'Esto no se puede deshacer. Baja un respaldo antes si no estás seguro.',
+    boton: 'Sí, borrar todo'
+  }).then(function (r) {
+    if (!r.ok) return;
+    reemplazarNotas([]);
+    guardarNotas();
+    vaciarImagenes();
+    dibujarCorte();
+    avisar('Listo, la tablet quedó en cero.');
+  });
 });
 
 document.getElementById('btnVerSinRecoger').addEventListener('click', function () {

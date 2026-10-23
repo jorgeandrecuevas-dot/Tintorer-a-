@@ -99,9 +99,15 @@ export async function espiarPrint(page) {
 
 export const textoDelAviso = (page) => page.locator('#textoAviso').textContent();
 
-// Los cuadros de confirmar del navegador se aceptan solos
-export function aceptarDialogos(page) {
-  page.on('dialog', (d) => d.accept());
+// El cuadro de «¿seguro?» de la aplicación: se llena el motivo si lo pide y se acepta
+export async function confirmarCuadro(page, { motivo, devolver } = {}) {
+  const cuadro = page.locator('#modalConfirmar');
+  await expect(cuadro).toBeVisible();
+  await expect(page.locator('#btnSiConfirmar')).toBeEnabled();     // ya terminó de abrirse
+  if (motivo) await page.fill('#motivoConfirmar', motivo);
+  if (devolver) await page.check('#casillaConfirmar');
+  await page.click('#btnSiConfirmar');
+  await expect(cuadro).toBeHidden();
 }
 
 // Mete notas ya armadas, como las dejaría una versión vieja de la aplicación
@@ -128,4 +134,10 @@ export async function cargarEjemplos(page) {
   await irA(page, 'corte');
   await page.click('#btnEjemplos');
   await expect.poll(async () => (await notasGuardadas(page)).length).toBeGreaterThanOrEqual(4);
+}
+
+// Espera a que el cuadro de confirmar ya esté abierto del todo
+export async function esperarCuadro(page) {
+  await expect(page.locator('#modalConfirmar')).toBeVisible();
+  await expect(page.locator('#btnSiConfirmar')).toBeEnabled();
 }

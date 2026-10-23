@@ -3,7 +3,7 @@ import { textoFecha } from './ciclo.js';
 import { abrirEntrega } from './entrega.js';
 import { abrirNota } from './modalNota.js';
 import { irA, registrarVista } from './navegacion.js';
-import { ETAPAS, NOTAS, diasEmbolsada, guardarNotas, ponerEstatus, sinRecoger, textoHace } from './notas.js';
+import { ETAPAS, NOTAS, diasEmbolsada, guardarNotas, ponerEstatus, sinRecoger, textoHace, vivas } from './notas.js';
 import { pesos, sinAcentos } from './utilidades.js';
 import { avisarPorWhatsApp } from './whatsapp.js';
 
@@ -142,6 +142,47 @@ document.getElementById('modoLista').addEventListener('click', function () {
   modoTablero = 'lista'; dibujarTablero();
 });
 
+// Las canceladas van aparte, abajo. Se pueden abrir para ver el motivo o reactivarlas.
+function dibujarCanceladas(buscado) {
+  const caja = document.getElementById('cajaCanceladas');
+  caja.innerHTML = '';
+  const canceladas = NOTAS.filter(function (n) { return n.cancelada && notaCoincide(n, buscado); });
+  caja.classList.toggle('d-none', canceladas.length === 0);
+  if (canceladas.length === 0) return;
+
+  const tarjeta = document.createElement('div');
+  tarjeta.className = 'card';
+  const cabeza = document.createElement('div');
+  cabeza.className = 'card-header fw-semibold';
+  cabeza.textContent = 'Canceladas (' + canceladas.length + ')';
+  tarjeta.appendChild(cabeza);
+
+  const lista = document.createElement('ul');
+  lista.className = 'list-group list-group-flush';
+  canceladas.forEach(function (n) {
+    const li = document.createElement('li');
+    li.className = 'list-group-item nota-tocable';
+    li.tabIndex = 0;
+    li.setAttribute('role', 'button');
+    li.setAttribute('aria-label', 'Ver la nota cancelada ' + n.folio + ' de ' + n.cliente);
+    li.addEventListener('click', function () { abrirNota(n.id); });
+    li.addEventListener('keydown', function (evento) {
+      if (evento.key === 'Enter' || evento.key === ' ') { evento.preventDefault(); abrirNota(n.id); }
+    });
+    const titulo = document.createElement('div');
+    titulo.className = 'fw-semibold';
+    titulo.textContent = n.folio + ' · ' + n.cliente;
+    const motivo = document.createElement('small');
+    motivo.className = 'text-secondary';
+    motivo.textContent = n.motivo || 'Sin motivo';
+    li.appendChild(titulo);
+    li.appendChild(motivo);
+    lista.appendChild(li);
+  });
+  tarjeta.appendChild(lista);
+  caja.appendChild(tarjeta);
+}
+
 export function dibujarTablero() {
   const cajon = document.getElementById('columnas');
   const cajaLista = document.getElementById('listaEntregas');
@@ -149,6 +190,7 @@ export function dibujarTablero() {
   cajaLista.innerHTML = '';
   pintarModo();
 
+  const todas = vivas();
   const vacio = NOTAS.length === 0;
   document.getElementById('tableroVacio').classList.toggle('d-none', !vacio);
   document.getElementById('filaBuscarNota').classList.toggle('d-none', vacio);
@@ -158,18 +200,19 @@ export function dibujarTablero() {
   if (vacio) { document.getElementById('cuentaBusqueda').textContent = ''; return; }
 
   const buscado = sinAcentos(loQueBusca.trim());
-  const halladas = NOTAS.filter(function (n) { return notaCoincide(n, buscado); });
+  const halladas = todas.filter(function (n) { return notaCoincide(n, buscado); });
+  dibujarCanceladas(buscado);
 
   const letrero = document.getElementById('cuentaBusqueda');
   if (buscado === '') {
     letrero.textContent = '';
   } else {
     letrero.textContent = halladas.length === 1
-      ? '1 nota de ' + NOTAS.length
-      : halladas.length + ' notas de ' + NOTAS.length;
+      ? '1 nota de ' + todas.length
+      : halladas.length + ' notas de ' + todas.length;
   }
 
-  if (halladas.length === 0) {
+  if (halladas.length === 0 && buscado !== '') {
     cajon.classList.add('d-none');
     cajaLista.classList.add('d-none');
     document.getElementById('sinResultadosNota').classList.remove('d-none');

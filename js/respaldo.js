@@ -1,6 +1,7 @@
 /* El respaldo a un archivo, y el recordatorio de bajarlo. */
 import { meterImagenes, todasLasImagenes, vaciarImagenes } from './almacen.js';
 import { avisar } from './avisos.js';
+import { confirmar } from './confirmar.js';
 import { alEntrar } from './navegacion.js';
 import { NOTAS, escribirNotas, normalizarNota, reemplazarNotas } from './notas.js';
 
@@ -125,37 +126,42 @@ document.getElementById('archivoRespaldo').addEventListener('change', function (
     }
 
     // Restaurar borra lo que haya. Hay que preguntar.
-    const seguro = window.confirm(
-      'El respaldo trae ' + datos.notas.length + ' notas.\n\n' +
-      'Se van a reemplazar las ' + NOTAS.length + ' que hay en esta tablet. ' +
-      'Esto no se puede deshacer. ¿Seguro?');
-    if (!seguro) { letreroRespaldo.textContent = ''; return; }
-
-    const pares = Object.keys(datos.imagenes || {}).map(function (n) {
-      return [n, datos.imagenes[n]];
+    confirmar({
+      titulo: 'Restaurar el respaldo',
+      texto: 'El respaldo trae ' + datos.notas.length + ' notas. Se van a reemplazar las ' +
+             NOTAS.length + ' que hay en esta tablet. Esto no se puede deshacer.',
+      boton: 'Sí, restaurar'
+    }).then(function (r) {
+      if (!r.ok) { letreroRespaldo.textContent = ''; return; }
+      restaurar(datos);
     });
-
-    vaciarImagenes()
-      .then(function () { return meterImagenes(pares); })
-      .then(function (entraron) {
-        reemplazarNotas(datos.notas.map(normalizarNota));
-        const cupo = escribirNotas(NOTAS);
-
-
-        if (!cupo) {
-          letreroRespaldo.textContent = '';
-          avisar('Las notas no cupieron en la tablet. El respaldo quedó sin restaurar.');
-          return;
-        }
-        letreroRespaldo.textContent = NOTAS.length + ' notas restauradas';
-        guardarLlave(LLAVE_RESPALDO, datos.fecha || new Date().toISOString());
-        pintarAvisoRespaldo();
-        avisar(entraron
-          ? 'Listo, volvieron ' + NOTAS.length + ' notas.'
-          : 'Volvieron ' + NOTAS.length + ' notas, pero sin las fotos.');
-      });
   });
 });
+
+function restaurar(datos) {
+  const pares = Object.keys(datos.imagenes || {}).map(function (n) {
+    return [n, datos.imagenes[n]];
+  });
+
+  vaciarImagenes()
+    .then(function () { return meterImagenes(pares); })
+    .then(function (entraron) {
+      reemplazarNotas(datos.notas.map(normalizarNota));
+      const cupo = escribirNotas(NOTAS);
+
+      if (!cupo) {
+        letreroRespaldo.textContent = '';
+        avisar('Las notas no cupieron en la tablet. El respaldo quedó sin restaurar.');
+        return;
+      }
+      letreroRespaldo.textContent = NOTAS.length + ' notas restauradas';
+      guardarLlave(LLAVE_RESPALDO, datos.fecha || new Date().toISOString());
+      pintarAvisoRespaldo();
+      avisar(entraron
+        ? 'Listo, volvieron ' + NOTAS.length + ' notas.'
+        : 'Volvieron ' + NOTAS.length + ' notas, pero sin las fotos.');
+    });
+}
 
 alEntrar(pintarAvisoRespaldo);
 pintarAvisoRespaldo();
