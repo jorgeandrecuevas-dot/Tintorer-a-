@@ -30,3 +30,9 @@ import './js/corte.js';
 import './js/documentos.js';
 import './js/respaldo.js';
 import './js/sinred.js';
+import './js/cola.js';
+import './js/hoy.js';
+
+// Arranca en Hoy, con lo que toca
+import { irA } from './js/navegacion.js';
+irA('hoy');

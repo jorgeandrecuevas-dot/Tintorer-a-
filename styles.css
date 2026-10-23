@@ -367,3 +367,8 @@ body {
   width: 1.5rem;
   height: 1.5rem;
 }
+
+/* En Hoy, lo que no tiene nada pendiente se ve apagado */
+.tarjeta-hoy-vacia {
+  opacity: .6;
+}

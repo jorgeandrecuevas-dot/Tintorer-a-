@@ -11,6 +11,7 @@ import { alCambiar } from './notas.js';
    ------------------------------------------------------------------------- */
 
 const TITULOS = {
+  hoy:     'Hoy',
   nota:    'Nota nueva',
   tablero: 'Tablero',
   maquila: 'Maquila',

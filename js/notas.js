@@ -209,7 +209,7 @@ export function notasDeEjemplo() {
   // dias: hace cuántos días se levantó. Cada pago dice hace cuántos días entró.
   return [
     { folio: '0479', cliente: 'Carmen Ruiz', piezas: 1, total: 230, costo: 120, estatus: 'maquila',
-      detalle: 'Edredón queen', dias: 3, enviada: 2, pagos: [[3, 115, 'anticipo']] },
+      detalle: 'Edredón queen', dias: 3, enviada: 2, regresa: 0, tardaMas: true, pagos: [[3, 115, 'anticipo']] },
     { folio: '0480', cliente: 'Pedro Lara', piezas: 3, total: 210, costo: 120, estatus: 'devuelta',
       detalle: 'Camisa ×3', dias: 4, enviada: 3, pagos: [[4, 210, 'liquidacion']] },
     // Esta lleva 20 días embolsada: así se ve cómo marca la ropa que nadie recoge
@@ -229,6 +229,8 @@ export function notasDeEjemplo() {
     n.pagado = n.pagos.reduce(function (s, p) { return s + p.monto; }, 0);
     n.saldo = n.total - n.pagado;
     n.historial = [{ f: n.creada, t: 'Nota levantada' }];
+    if (e.regresa !== undefined) n.regresaISO = haceDias(-e.regresa);
+    if (e.tardaMas) n.tardaMas = true;
     if (e.lista) n.listaDesde = haceDias(e.lista);
     if (e.entregada) n.entregadaEl = haceDias(e.entregada);
     return conId(n);

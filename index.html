@@ -39,7 +39,8 @@
   </div>
   <div class="offcanvas-body">
     <ul class="nav nav-pills flex-column gap-1">
-      <li class="nav-item"><a class="nav-link text-white active" data-vista="nota"    href="#">Nota nueva</a></li>
+      <li class="nav-item"><a class="nav-link text-white active" data-vista="hoy"     href="#">Hoy</a></li>
+      <li class="nav-item"><a class="nav-link text-white"        data-vista="nota"    href="#">Nota nueva</a></li>
       <li class="nav-item"><a class="nav-link text-white"        data-vista="tablero" href="#">Tablero</a></li>
       <li class="nav-item"><a class="nav-link text-white"        data-vista="maquila" href="#">Maquila</a></li>
       <li class="nav-item"><a class="nav-link text-white"        data-vista="corte"   href="#">Corte</a></li>
@@ -54,7 +55,8 @@
   <aside class="barra-lateral text-bg-dark d-none d-lg-block flex-shrink-0 p-3">
     <div class="fs-5 fw-semibold mb-3">Tintorería</div>
     <ul class="nav nav-pills flex-column gap-1">
-      <li class="nav-item"><a class="nav-link text-white active" data-vista="nota"    href="#">Nota nueva</a></li>
+      <li class="nav-item"><a class="nav-link text-white active" data-vista="hoy"     href="#">Hoy</a></li>
+      <li class="nav-item"><a class="nav-link text-white"        data-vista="nota"    href="#">Nota nueva</a></li>
       <li class="nav-item"><a class="nav-link text-white"        data-vista="tablero" href="#">Tablero</a></li>
       <li class="nav-item"><a class="nav-link text-white"        data-vista="maquila" href="#">Maquila</a></li>
       <li class="nav-item"><a class="nav-link text-white"        data-vista="corte"   href="#">Corte</a></li>
@@ -67,7 +69,7 @@
   <main class="flex-grow-1 p-3 p-lg-4 min-w-0">
 
     <div class="d-none d-lg-flex justify-content-between align-items-center mb-3">
-      <h1 class="h4 mb-0" id="tituloVista">Nota nueva</h1>
+      <h1 class="h4 mb-0" id="tituloVista">Hoy</h1>
       <span class="text-secondary" id="hoyTexto"></span>
     </div>
 
@@ -81,7 +83,18 @@
     <!-- ================================================================
          VISTA 1 — NOTA NUEVA   (aquí vive la galería de la Actividad 1)
          ================================================================ -->
-    <section class="vista" id="vista-nota">
+    <!-- ================================================================
+         VISTA 0 — HOY: lo que toca hoy según el ciclo de la semana
+         ================================================================ -->
+    <section class="vista" id="vista-hoy">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <p class="mb-0 fs-5" id="hoyFecha"></p>
+        <button type="button" class="btn btn-primary" id="btnHoyNota">Nota nueva</button>
+      </div>
+      <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3" id="hoyTarjetas"></div>
+    </section>
+
+    <section class="vista d-none" id="vista-nota">
       <div class="row g-3">
 
         <!-- ---------- columna de captura ---------- -->
@@ -593,6 +606,25 @@
     </section>
 
   </main>
+</div>
+
+<!-- Avisar a varios clientes de corrido -->
+<div class="modal fade" id="modalCola" tabindex="-1" aria-hidden="true" aria-labelledby="tituloCola">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="tituloCola">Avisarles</h2>
+        <span class="badge text-bg-secondary ms-2" id="colaProgreso"></span>
+        <button class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body" id="colaTarjeta"></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary me-auto" data-bs-dismiss="modal">Cerrar</button>
+        <button class="btn btn-outline-secondary" id="btnColaSaltar">Saltar</button>
+        <button class="btn btn-success" id="btnColaAbrir">Abrir WhatsApp</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ¿Seguro? Reemplaza al confirm() del navegador -->

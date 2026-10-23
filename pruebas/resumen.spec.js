@@ -2,7 +2,9 @@
 // prueban directo, sin abrir el navegador.
 import { test, expect } from '@playwright/test';
 import { limitesDelPeriodo, resumenCorte, textoRango } from '../js/resumen.js';
-import { fechaEntrega, textoFecha } from '../js/ciclo.js';
+import { diasEntre, fechaEntrega, proximaSalidaDesde, textoFecha } from '../js/ciclo.js';
+import { resumenDeHoy } from '../js/agenda.js';
+import { direccionDeWhatsApp, mensajeDeAviso, telefonoWhatsApp } from '../js/mensajes.js';
 import { catalogoActual, lavanderia } from '../js/catalogo.js';
 import { POR_OMISION, ajustes, dentroDeLimites, guardarAjustes } from '../js/config.js';
 
@@ -155,5 +157,71 @@ test.describe('los ajustes', () => {
     guardarAjustes({ lavanderia: { precioKilo: 60 } });
     expect(lavanderia(2)).toEqual({ precio: 120, costo: 64 });
     guardarAjustes({ lavanderia: { precioKilo: 45 } });
+  });
+});
+
+test.describe('el ciclo', () => {
+  test('la próxima salida que todavía no se va', () => {
+    expect(textoFecha(proximaSalidaDesde(new Date(2026, 9, 22, 6, 0)))).toBe('jue 22 oct');   // jueves, 6 am
+    expect(textoFecha(proximaSalidaDesde(new Date(2026, 9, 22, 15, 0)))).toBe('sáb 24 oct');  // jueves, 3 pm
+    expect(textoFecha(proximaSalidaDesde(new Date(2026, 9, 21, 12, 0)))).toBe('jue 22 oct');  // miércoles
+    expect(textoFecha(proximaSalidaDesde(new Date(2026, 9, 24, 20, 0)))).toBe('mar 27 oct');  // sábado tarde
+  });
+
+  test('los días entre dos fechas son de calendario, sin importar la hora', () => {
+    expect(diasEntre(new Date(2026, 9, 22, 23, 59), new Date(2026, 9, 23, 0, 1))).toBe(1);
+    expect(diasEntre(new Date(2026, 9, 22, 8, 0), new Date(2026, 9, 22, 20, 0))).toBe(0);
+    expect(diasEntre(new Date(2026, 9, 22), new Date(2026, 9, 20))).toBe(-2);
+  });
+});
+
+test.describe('el aviso al cliente', () => {
+  test('el número se entiende como lo escriba la gente', () => {
+    for (const [escrito, queda] of [['33 1234 5678', '523312345678'], ['(33) 1234-5678', '523312345678'],
+      ['+52 33 1234 5678', '523312345678'], ['52 1 33 1234 5678', '523312345678'], ['3312345678', '523312345678']]) {
+      expect(telefonoWhatsApp(escrito), escrito).toBe(queda);
+    }
+    for (const mal of ['', '123', '33 1234', null, undefined, 'no tiene']) expect(telefonoWhatsApp(mal), String(mal)).toBeNull();
+  });
+
+  test('el mensaje saluda por el primer nombre y dice cuánto se debe', () => {
+    expect(mensajeDeAviso({ cliente: 'Marta Díaz', folio: '0501', saldo: 90 }))
+      .toBe('Hola Marta, tu ropa ya está lista (nota 0501). Pasa por ella cuando quieras. Quedan $90 por pagar.');
+    expect(mensajeDeAviso({ cliente: 'Sin nombre', folio: '7', saldo: 0 }))
+      .toBe('Hola, tu ropa ya está lista (nota 7). Pasa por ella cuando quieras.');
+  });
+
+  test('la dirección lleva el texto bien escrito para una liga', () => {
+    const url = direccionDeWhatsApp({ cliente: 'José', folio: '1', saldo: 0, telefono: '33 1234 5678' });
+    expect(url.startsWith('https://wa.me/523312345678?text=')).toBe(true);
+    expect(decodeURIComponent(url.split('text=')[1])).toContain('Hola José');
+    expect(direccionDeWhatsApp({ cliente: 'X', folio: '1', saldo: 0, telefono: '' })).toBeNull();
+  });
+});
+
+test.describe('lo que toca hoy', () => {
+  const hoy = new Date(2026, 9, 22, 15, 0);
+  const n = (extra) => ({ folio: '1', piezas: 2, total: 140, saldo: 70, estatus: 'recibida', ...extra });
+
+  test('cuenta cada cosa y deja fuera lo cancelado', () => {
+    const h = resumenDeHoy([
+      n({ estatus: 'recibida', apartada: true }), n({ estatus: 'recibida' }), n({ estatus: 'recibida', cancelada: true }),
+      n({ estatus: 'maquila', regresaISO: new Date(2026, 9, 22, 9).toISOString() }),
+      n({ estatus: 'maquila', regresaISO: new Date(2026, 9, 20).toISOString() }),
+      n({ estatus: 'maquila' }),                                   // sin fecha de regreso: no se sabe
+      n({ estatus: 'devuelta' }),
+      n({ estatus: 'lista', telefono: '33 1234 5678' }), n({ estatus: 'lista', telefono: '' }),
+      n({ estatus: 'lista', telefono: '33 1234 5678', avisadaEl: new Date().toISOString() }),
+    ], hoy);
+    expect([h.porMandar.length, h.apartadas, h.prendasPorMandar]).toEqual([2, 1, 4]);
+    expect([h.llegan.length, h.atrasadas.length]).toEqual([1, 1]);
+    expect(h.porEmbolsar).toHaveLength(1);
+    expect([h.porAvisar.length, h.sinTelefono, h.porEntregar.length]).toEqual([1, 1, 3]);
+    expect(h.debenLasEmbolsadas).toBe(210);
+    expect(h.textoSalida).toBe('Sale el sábado 24 oct');
+  });
+
+  test('sin notas no hay nada y se sabe', () => {
+    expect(resumenDeHoy([], hoy).hayNotas).toBe(false);
   });
 });

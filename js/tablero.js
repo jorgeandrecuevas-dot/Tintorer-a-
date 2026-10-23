@@ -1,6 +1,7 @@
 /* El tablero: las cinco etapas, la lista de entregas y el buscador de notas. */
 import { textoFecha } from './ciclo.js';
 import { abrirEntrega } from './entrega.js';
+import { abrirCola, pendientesDeAviso } from './cola.js';
 import { abrirNota } from './modalNota.js';
 import { irA, registrarVista } from './navegacion.js';
 import { ETAPAS, NOTAS, diasEmbolsada, guardarNotas, ponerEstatus, sinRecoger, textoHace, vivas } from './notas.js';
@@ -348,7 +349,7 @@ function filaEntrega(n) {
   return li;
 }
 
-function bloqueDeLista(titulo, notas, vacio) {
+function bloqueDeLista(titulo, notas, vacio, accion) {
   const tarjeta = document.createElement('div');
   tarjeta.className = 'card mb-3';
 
@@ -362,6 +363,14 @@ function bloqueDeLista(titulo, notas, vacio) {
   cuenta.textContent = notas.length;
   cabeza.appendChild(nombre);
   cabeza.appendChild(cuenta);
+  if (accion) {
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'btn btn-sm btn-outline-success ms-auto me-2';
+    boton.textContent = accion.texto;
+    boton.addEventListener('click', accion.alTocar);
+    cabeza.insertBefore(boton, cuenta);
+  }
   tarjeta.appendChild(cabeza);
 
   if (notas.length === 0) {
@@ -401,7 +410,9 @@ function dibujarLista(notas) {
            (buscando || (n.entregadaEl && new Date(n.entregadaEl).toDateString() === hoy));
   });
 
-  caja.appendChild(bloqueDeLista('Por entregar', pendientes, 'No falta nada por entregar.'));
+  const porAvisar = pendientesDeAviso().length;
+  caja.appendChild(bloqueDeLista('Por entregar', pendientes, 'No falta nada por entregar.',
+    porAvisar > 0 ? { texto: 'Avisarles (' + porAvisar + ')', alTocar: abrirCola } : null));
   caja.appendChild(bloqueDeLista(buscando ? 'Entregadas' : 'Entregadas hoy', entregadas,
     buscando ? 'Ninguna entregada con ese nombre.' : 'Todavía no entregas nada hoy.'));
 }

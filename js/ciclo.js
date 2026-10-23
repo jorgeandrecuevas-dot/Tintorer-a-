@@ -12,11 +12,11 @@ const DIAS_SALIDA = [2, 4, 6];                 // martes, jueves, sábado
 
 export const TARDAN_MAS  = ['cobertores', 'edredones'];
 
-const DIAS  = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+export const DIAS  = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 
 export const DIAS_LARGOS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 
-const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun',
+export const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun',
                'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
 export function proximaSalida(desde) {
@@ -44,14 +44,29 @@ export const HORA_SALIDA = 7;
    3 de la tarde no alcanza el carro de las 7 am: sale el jueves y regresa el
    sábado. Sin esto se le prometía el jueves, un ciclo antes de lo real. */
 export function fechaEntrega(desde, tardaMas, horaSalida = HORA_SALIDA) {
+  let regreso = regresoDe(proximaSalidaDesde(desde, horaSalida));
+  if (tardaMas) regreso = regresoDe(regreso);
+  return regreso;
+}
+
+// La próxima salida que todavía no se va. Si hoy es día de salida y ya pasó la
+// hora, es la siguiente.
+export function proximaSalidaDesde(desde, horaSalida = HORA_SALIDA) {
   const dia = new Date(desde);
   const hora = dia.getHours() + dia.getMinutes() / 60;
   if (DIAS_SALIDA.indexOf(dia.getDay()) !== -1 && hora >= horaSalida) {
-    dia.setDate(dia.getDate() + 1);                 // ya salió: va en la siguiente
+    dia.setDate(dia.getDate() + 1);
   }
-  let regreso = regresoDe(proximaSalida(dia));
-  if (tardaMas) regreso = regresoDe(regreso);
-  return regreso;
+  return proximaSalida(dia);
+}
+
+function inicioDelDia(d) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+// Cuántos días de calendario hay de una fecha a otra. De hoy a mañana, 1.
+export function diasEntre(desde, hasta) {
+  return Math.round((inicioDelDia(new Date(hasta)) - inicioDelDia(new Date(desde))) / 86400000);
 }
 
 export function textoFecha(d) {
