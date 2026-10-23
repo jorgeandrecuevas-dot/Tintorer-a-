@@ -216,8 +216,9 @@ AirDrop, correo) en un toque.
 ### Diseño
 
 1. **Barra fija abajo con total, saldo y «Guardar nota».** En iPad vertical
-   la nota mide 3,500 px de alto, unas 3 pantallas. La firma queda abajo y el
-   botón de guardar arriba. Se firma y hay que subir para guardar.
+   la nota mide unos 1,750 px de alto, casi 1.5 pantallas, y crece con cada
+   prenda. La firma queda abajo y el botón de guardar arriba. Se firma y hay
+   que subir para guardar. En teléfono pasa más.
 2. **Menú de pestañas abajo** en iPad vertical y teléfono, en vez de la
    hamburguesa. Son 4 destinos y se usan todo el día.
 3. **Botones más grandes.** Los de las acciones del mostrador (Entregar,
