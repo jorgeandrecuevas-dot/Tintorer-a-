@@ -112,14 +112,14 @@ test('la sugerencia de clientes llena nombre y teléfono', async ({ page }) => {
 
 test.describe('la fecha que se le promete al cliente', () => {
   const casos = [
-    ['lunes en la noche sale el martes y regresa el jueves', '2026-10-26T20:00:00', false, 'jue 29 oct'],
-    ['el miércoles sale el jueves y regresa el sábado',       '2026-10-28T12:00:00', false, 'sáb 31 oct'],
-    ['el sábado antes de que salga regresa el martes',        '2026-10-24T06:00:00', false, 'mar 27 oct'],
-    ['un cobertor tarda un ciclo más',                        '2026-10-26T20:00:00', true,  'sáb 31 oct'],
+    ['lunes en la noche sale el martes y regresa el jueves', '2026-10-26T20:00:00-06:00', false, 'jue 29 oct'],
+    ['el miércoles sale el jueves y regresa el sábado',       '2026-10-28T12:00:00-06:00', false, 'sáb 31 oct'],
+    ['el sábado antes de que salga regresa el martes',        '2026-10-24T06:00:00-06:00', false, 'mar 27 oct'],
+    ['un cobertor tarda un ciclo más',                        '2026-10-26T20:00:00-06:00', true,  'sáb 31 oct'],
     // el carro sale a las 7 am: lo que llega después ya no alcanza
-    ['el martes a las 6 am todavía alcanza el carro',         '2026-10-27T06:00:00', false, 'jue 29 oct'],
-    ['el martes a las 3 pm el carro ya salió: sale el jueves', '2026-10-27T15:00:00', false, 'sáb 31 oct'],
-    ['el sábado a las 5 pm sale el martes y regresa el jueves', '2026-10-24T17:00:00', false, 'jue 29 oct'],
+    ['el martes a las 6 am todavía alcanza el carro',         '2026-10-27T06:00:00-06:00', false, 'jue 29 oct'],
+    ['el martes a las 3 pm el carro ya salió: sale el jueves', '2026-10-27T15:00:00-06:00', false, 'sáb 31 oct'],
+    ['el sábado a las 5 pm sale el martes y regresa el jueves', '2026-10-24T17:00:00-06:00', false, 'jue 29 oct'],
   ];
   for (const [nombre, momento, cobertor, esperada] of casos) {
     test(nombre, async ({ page }) => {

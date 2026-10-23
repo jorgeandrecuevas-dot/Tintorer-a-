@@ -1,7 +1,7 @@
 import { avisar } from './avisos.js';
 /* Las notas guardadas: dónde viven, cómo se escriben y las reglas de cada etapa. */
 import { esImagenAdentro, guardarImagen } from './almacen.js';
-import { quienAtiende } from './ajustes.js';
+import { ajustes, quienAtiende } from './config.js';
 import { fechaEntrega, textoFecha } from './ciclo.js';
 
 /* -------------------------------------------------------------------------
@@ -179,7 +179,6 @@ export function ponerEstatus(n, estatus) {
    esperar antes de darla por no recogida lo decide el dueño: 15 es mi
    suposición hasta que lo confirme. */
 
-export const DIAS_SIN_RECOGER = 15;
 
 export function diasEmbolsada(n) {
   if (n.estatus !== 'lista' || !n.listaDesde) return null;
@@ -189,7 +188,7 @@ export function diasEmbolsada(n) {
 export function sinRecoger(n) {
   if (n.cancelada) return false;
   const d = diasEmbolsada(n);
-  return d !== null && d >= DIAS_SIN_RECOGER;
+  return d !== null && d >= ajustes().diasSinRecoger;
 }
 
 export function textoHace(dias) {

@@ -1,11 +1,12 @@
 /* La pantalla de nota nueva: prendas, cobro, clientes que ya vinieron y guardar. */
 import { borrarImagenes, guardarImagen } from './almacen.js';
 import { avisar } from './avisos.js';
-import { CATALOGO, CATEGORIAS, lavanderia } from './catalogo.js';
-import { HORA_SALIDA, TARDAN_MAS, fechaEntrega, textoFecha } from './ciclo.js';
+import { CATEGORIAS, catalogoActual, lavanderia } from './catalogo.js';
+import { ajustes } from './config.js';
+import { TARDAN_MAS, fechaEntrega, textoFecha } from './ciclo.js';
 import { firmaRecibido } from './firmas.js';
 import { fotosDeLaNota, vaciarGaleria } from './galeria.js';
-import { irA } from './navegacion.js';
+import { irA, registrarVista } from './navegacion.js';
 import { NOTAS, conId, escribirNotas } from './notas.js';
 import { pesos, sinAcentos } from './utilidades.js';
 
@@ -176,7 +177,7 @@ function dibujarResultados() {
   const busca = sinAcentos(inpBuscar.value.trim());
   listaResultados.innerHTML = '';
 
-  const encontradas = CATALOGO.filter(function (p) {
+  const encontradas = catalogoActual().filter(function (p) {
     return busca === '' || sinAcentos(p.nombre).indexOf(busca) !== -1;
   });
 
@@ -269,9 +270,9 @@ inpRecibido.addEventListener('input', function () {
 });
 
 // Lo que la nota vale ahora mismo. Lo usan la pantalla y el guardado.
-// La hora de salida viene de Ajustes cuando exista. Mientras, la de los apuntes.
+// La hora a la que sale el carro, de Ajustes
 function horaDeSalida() {
-  return HORA_SALIDA;
+  return ajustes().horaSalida;
 }
 
 export function cuentaNota() {
@@ -299,7 +300,7 @@ export function cuentaNota() {
 
   let pagado;
   if (modoCobro === 'nada')       pagado = 0;
-  else if (modoCobro === 'mitad') pagado = Math.round(precio / 2);
+  else if (modoCobro === 'mitad') pagado = Math.round(precio * ajustes().anticipoPct / 100);
   else if (modoCobro === 'todo')  pagado = precio;
   else                            pagado = Math.max(0, parseFloat(inpRecibido.value) || 0);
 
@@ -327,9 +328,14 @@ function dibujarNota() {
   // Si el atajo mandó, se refleja en el campo. Si escribieron, no se toca.
   if (modoCobro !== 'manual') inpRecibido.value = c.pagado;
 
-  // El punto 23 pide mínimo el 50%. No se bloquea, se avisa.
-  const corto = c.precio > 0 && c.pagado < c.precio / 2;
-  document.getElementById('avisoAnticipo').classList.toggle('d-none', !corto);
+  // El punto 23 pide un anticipo mínimo (50% de entrada). No se bloquea, se avisa.
+  const minimo = ajustes().anticipoPct;
+  const corto = c.precio > 0 && c.pagado < c.precio * minimo / 100;
+  const aviso = document.getElementById('avisoAnticipo');
+  aviso.classList.toggle('d-none', !corto);
+  aviso.textContent = 'Es menos del ' + minimo + '% que pide el negocio.';
+  // El atajo dice cuánto es: «Mitad» si es 50, «30%» si cambió
+  document.getElementById('atajoMitad').textContent = minimo === 50 ? 'Mitad' : minimo + '%';
   document.getElementById('costo').textContent        = pesos(c.costo);
   document.getElementById('ganancia').textContent     = pesos(c.precio - c.costo);
 }
@@ -345,6 +351,10 @@ btnMargen.addEventListener('click', function () {
 });
 
 dibujarNota();
+
+// Al volver a esta pantalla se recalcula: el atajo del anticipo y la fecha prometida
+// pueden haber cambiado (Ajustes, o simplemente que pasó la hora)
+registrarVista('nota', dibujarNota);
 
 // Guardar tarda lo que tarde el almacén de imágenes. Dos toques seguidos
 // levantarían la nota dos veces.

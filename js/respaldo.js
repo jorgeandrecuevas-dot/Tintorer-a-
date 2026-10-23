@@ -1,6 +1,7 @@
 /* El respaldo a un archivo, y el recordatorio de bajarlo. */
 import { meterImagenes, todasLasImagenes, vaciarImagenes } from './almacen.js';
 import { avisar } from './avisos.js';
+import { ajustes, ajustesParaRespaldo, restaurarAjustes } from './config.js';
 import { confirmar } from './confirmar.js';
 import { alEntrar } from './navegacion.js';
 import { NOTAS, escribirNotas, normalizarNota, reemplazarNotas } from './notas.js';
@@ -16,7 +17,7 @@ import { NOTAS, escribirNotas, normalizarNota, reemplazarNotas } from './notas.j
    gigante, porque con cientos de fotos adentro eso no cabe en memoria.
    ------------------------------------------------------------------------- */
 
-const RESPALDO_VERSION = 2;
+const RESPALDO_VERSION = 3;
 
 /* El recordatorio. Un respaldo que nadie se acuerda de bajar no sirve. Si
    llevan más de una semana sin bajarlo sale un aviso en cualquier pantalla.
@@ -27,7 +28,6 @@ const LLAVE_RESPALDO = 'tintoreria.ultimoRespaldo';
 
 const LLAVE_DESDE = 'tintoreria.desde';
 
-const DIAS_SIN_RESPALDO = 7;
 
 function leerLlave(llave) {
   try { return localStorage.getItem(llave); } catch (e) { return null; }
@@ -48,7 +48,7 @@ function diasSinRespaldo() {
 
 export function pintarAvisoRespaldo() {
   const dias = diasSinRespaldo();
-  const toca = dias !== null && dias >= DIAS_SIN_RESPALDO;
+  const toca = dias !== null && dias >= ajustes().diasSinRespaldo;
   document.getElementById('avisoRespaldoViejo').classList.toggle('d-none', !toca);
   if (toca) {
     document.getElementById('textoRespaldoViejo').textContent =
@@ -76,6 +76,7 @@ document.getElementById('btnRespaldo').addEventListener('click', function () {
   todasLasImagenes().then(function (pares) {
     const pedazos = ['{"version":' + RESPALDO_VERSION +
                      ',"fecha":' + JSON.stringify(new Date().toISOString()) +
+                     ',"ajustes":' + JSON.stringify(ajustesParaRespaldo()) +
                      ',"notas":' + JSON.stringify(NOTAS) +
                      ',"imagenes":{'];
     pares.forEach(function (par, i) {
@@ -147,6 +148,7 @@ function restaurar(datos) {
     .then(function () { return meterImagenes(pares); })
     .then(function (entraron) {
       reemplazarNotas(datos.notas.map(normalizarNota));
+      if (datos.ajustes) restaurarAjustes(datos.ajustes);     // los respaldos viejos no los traen
       const cupo = escribirNotas(NOTAS);
 
       if (!cupo) {

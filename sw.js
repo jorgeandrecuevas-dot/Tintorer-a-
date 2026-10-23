@@ -23,6 +23,7 @@ const ARCHIVOS = [
   './js/captura.js',
   './js/catalogo.js',
   './js/ciclo.js',
+  './js/config.js',
   './js/confirmar.js',
   './js/corte.js',
   './js/documentos.js',

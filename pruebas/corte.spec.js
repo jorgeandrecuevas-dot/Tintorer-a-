@@ -164,16 +164,3 @@ test.describe('el recordatorio de respaldo', () => {
     await expect(page.locator('#avisoRespaldoViejo')).toBeHidden();
   });
 });
-
-test('el nombre de la tablet cambia en el menú y vuelve al de antes si se borra', async ({ page }) => {
-  await abrirLimpia(page);
-  await irA(page, 'corte');
-  await expect(page.locator('[data-sucursal]').first()).toHaveText('Sucursal 1');
-  await page.fill('#nombreSucursal', 'Centro');
-  await expect(page.locator('[data-sucursal]').first()).toHaveText('Centro');
-  await page.reload();
-  await expect(page.locator('[data-sucursal]').first()).toHaveText('Centro');
-  await irA(page, 'corte');
-  await page.fill('#nombreSucursal', '');
-  await expect(page.locator('[data-sucursal]').first()).toHaveText('Sucursal 1');
-});

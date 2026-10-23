@@ -1,5 +1,5 @@
 /* Los documentos que se imprimen: ticket, nota de maquila, etiquetas y conteo. */
-import { nombreSucursal } from './ajustes.js';
+import { nombreSucursal } from './config.js';
 import { avisar } from './avisos.js';
 import { cuentaNota, inpCliente, inpFolio, inpObserva } from './captura.js';
 import { proximaSalida, regresoDe, textoFecha } from './ciclo.js';

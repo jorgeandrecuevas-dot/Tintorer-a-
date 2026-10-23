@@ -14,7 +14,8 @@ const TITULOS = {
   nota:    'Nota nueva',
   tablero: 'Tablero',
   maquila: 'Maquila',
-  corte:   'Corte'
+  corte:   'Corte',
+  ajustes: 'Ajustes'
 };
 
 /* Cada pantalla dice aquí cómo se dibuja. Así este módulo no tiene que

@@ -1,9 +1,10 @@
 /* El corte: lo cobrado contra lo pagado a la maquila, y la ropa sin recoger. */
 import { vaciarImagenes } from './almacen.js';
 import { avisar } from './avisos.js';
+import { ajustes } from './config.js';
 import { confirmar } from './confirmar.js';
 import { registrarVista } from './navegacion.js';
-import { DIAS_SIN_RECOGER, ETAPAS, NOTAS, guardarNotas, notasDeEjemplo, reemplazarNotas, sinRecoger } from './notas.js';
+import { ETAPAS, NOTAS, guardarNotas, notasDeEjemplo, reemplazarNotas, sinRecoger } from './notas.js';
 import { mostrarLista } from './tablero.js';
 import { resumenCorte, textoRango } from './resumen.js';
 import { pesos, pesosConSigno } from './utilidades.js';
@@ -43,8 +44,8 @@ export function dibujarCorte() {
   const cuantas = sin.length + (sin.length === 1 ? ' nota' : ' notas') +
                   ' (' + prendas + (prendas === 1 ? ' prenda)' : ' prendas)');
   document.getElementById('sinRecogerTexto').textContent = sin.length === 0
-    ? 'Nada lleva ' + DIAS_SIN_RECOGER + ' días o más embolsado.'
-    : cuantas + (sin.length === 1 ? ' lleva ' : ' llevan ') + DIAS_SIN_RECOGER +
+    ? 'Nada lleva ' + ajustes().diasSinRecoger + ' días o más embolsado.'
+    : cuantas + (sin.length === 1 ? ' lleva ' : ' llevan ') + ajustes().diasSinRecoger +
       ' días o más embolsada' + (sin.length === 1 ? '.' : 's.');
   document.getElementById('srAnticipo').textContent = pesos(anticipo);
   document.getElementById('srCosto').textContent = pesos(pagadoMaq);

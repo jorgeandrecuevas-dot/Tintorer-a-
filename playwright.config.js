@@ -14,6 +14,7 @@ export default defineConfig({
     serviceWorkers: 'block',
     locale: 'es-MX',
     timezoneId: 'America/Mexico_City',
+    screenshot: 'only-on-failure',
   },
   webServer: {
     command: 'python3 -m http.server 8766 --bind 127.0.0.1',

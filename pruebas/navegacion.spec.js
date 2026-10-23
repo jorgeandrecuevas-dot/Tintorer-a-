@@ -1,8 +1,8 @@
 import { test, expect, abrirLimpia, irA } from './ayuda.js';
 
-test('las cuatro pantallas se ven una por una y el menú marca dónde estás', async ({ page }) => {
+test('las pantallas se ven una por una y el menú marca dónde estás', async ({ page }) => {
   await abrirLimpia(page);
-  const titulos = { tablero: 'Tablero', maquila: 'Maquila', corte: 'Corte', nota: 'Nota nueva' };
+  const titulos = { tablero: 'Tablero', maquila: 'Maquila', corte: 'Corte', ajustes: 'Ajustes', nota: 'Nota nueva' };
 
   for (const [vista, titulo] of Object.entries(titulos)) {
     await irA(page, vista);
@@ -16,7 +16,7 @@ test('las cuatro pantallas se ven una por una y el menú marca dónde estás', a
 
 test('no se sale de la pantalla hacia los lados', async ({ page }) => {
   await abrirLimpia(page);
-  for (const vista of ['nota', 'tablero', 'maquila', 'corte']) {
+  for (const vista of ['nota', 'tablero', 'maquila', 'corte', 'ajustes']) {
     await irA(page, vista);
     const sobra = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(sobra, 'sobra ancho en ' + vista).toBeLessThanOrEqual(0);

@@ -1,4 +1,5 @@
 /* Las 56 piezas con su precio y su costo de maquila, y la fórmula de la lavandería. */
+import { ajustes, precioDe } from './config.js';
 /* -------------------------------------------------------------------------
    2. CATÁLOGO DE PRECIOS
    ------------------------------------------------------------------------- */
@@ -88,13 +89,21 @@ export const CATALOGO = [
   { cat: 'tenis', nombre: 'Tenis (par)', costo: 70, precio: 130 }
 ];
 
-/* La lavandería no se guarda como tabla: es una fórmula.
-   La saqué de los 30 renglones de la hoja del dueño y no tiene excepciones. */
+// Las piezas con lo que valen hoy: el catálogo de la hoja del dueño, más lo que
+// se haya cambiado en Ajustes. Lo cambiado vale para las notas nuevas.
+export function catalogoActual() {
+  return CATALOGO.map(function (p) { return { ...p, ...precioDe(p) }; });
+}
+
+/* La lavandería no se guarda como tabla: es una fórmula. La sacé de los 30
+   renglones de la hoja del dueño y no tiene excepciones. Los tres números
+   se pueden cambiar en Ajustes. */
 export function lavanderia(kg) {
   // Sin kilos no hay nada que cobrar ni que pagarle a la maquila
   if (!(kg > 0)) return { precio: 0, costo: 0 };
+  const f = ajustes().lavanderia;
   return {
-    precio: 45 * kg,
-    costo:  kg <= 1 ? 32 : 32 + 16 * kg
+    precio: f.precioKilo * kg,
+    costo:  kg <= 1 ? f.costoPrimerKilo : f.costoPrimerKilo + f.costoPorKilo * kg
   };
 }

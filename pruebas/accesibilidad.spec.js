@@ -36,7 +36,7 @@ const MEDIR = () => {
   return { contraste, chicos };
 };
 
-for (const vista of ['nota', 'tablero', 'maquila', 'corte']) {
+for (const vista of ['nota', 'tablero', 'maquila', 'corte', 'ajustes']) {
   test(`${vista}: el texto se lee y lo que se toca mide 44 px o más`, async ({ page }) => {
     await abrirLimpia(page);
     await cargarEjemplos(page);

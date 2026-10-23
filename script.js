@@ -14,6 +14,7 @@
 
    La galería de la Actividad 1 está en js/galeria.js. */
 
+import './js/config.js';
 import './js/navegacion.js';
 import './js/ajustes.js';
 import './js/notas.js';

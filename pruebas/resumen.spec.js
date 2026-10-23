@@ -3,7 +3,8 @@
 import { test, expect } from '@playwright/test';
 import { limitesDelPeriodo, resumenCorte, textoRango } from '../js/resumen.js';
 import { fechaEntrega, textoFecha } from '../js/ciclo.js';
-import { lavanderia } from '../js/catalogo.js';
+import { catalogoActual, lavanderia } from '../js/catalogo.js';
+import { POR_OMISION, ajustes, dentroDeLimites, guardarAjustes } from '../js/config.js';
 
 const iso = (s) => new Date(s).toISOString();
 // jueves 22 de octubre de 2026, mediodía
@@ -126,5 +127,33 @@ test.describe('la lavandería', () => {
     expect(lavanderia(1)).toEqual({ precio: 45, costo: 32 });
     expect(lavanderia(2)).toEqual({ precio: 90, costo: 64 });
     expect(lavanderia(3)).toEqual({ precio: 135, costo: 80 });
+  });
+});
+
+test.describe('los ajustes', () => {
+  test('sin almacén valen los de siempre', () => {
+    expect(ajustes()).toMatchObject({ anticipoPct: 50, diasSinRecoger: 15, diasSinRespaldo: 7, horaSalida: 7 });
+    expect(ajustes().lavanderia).toEqual(POR_OMISION.lavanderia);
+    expect(catalogoActual()).toHaveLength(56);
+  });
+
+  test('qué número sirve', () => {
+    expect(dentroDeLimites('anticipoPct', 30)).toBe(true);
+    for (const malo of [150, -1, NaN, '30', null, undefined, Infinity]) expect(dentroDeLimites('anticipoPct', malo)).toBe(false);
+    expect(dentroDeLimites('horaSalida', 23.5)).toBe(true);
+    expect(dentroDeLimites('horaSalida', 24)).toBe(false);
+  });
+
+  test('un valor malo se cambia por el de siempre y los buenos se guardan', () => {
+    guardarAjustes({ anticipoPct: 999, diasSinRecoger: 20 });
+    expect(ajustes().anticipoPct).toBe(50);
+    expect(ajustes().diasSinRecoger).toBe(20);
+    guardarAjustes({ diasSinRecoger: 15 });
+  });
+
+  test('la fórmula de la lavandería usa lo que se ajustó', () => {
+    guardarAjustes({ lavanderia: { precioKilo: 60 } });
+    expect(lavanderia(2)).toEqual({ precio: 120, costo: 64 });
+    guardarAjustes({ lavanderia: { precioKilo: 45 } });
   });
 });

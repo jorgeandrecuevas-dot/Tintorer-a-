@@ -43,6 +43,7 @@
       <li class="nav-item"><a class="nav-link text-white"        data-vista="tablero" href="#">Tablero</a></li>
       <li class="nav-item"><a class="nav-link text-white"        data-vista="maquila" href="#">Maquila</a></li>
       <li class="nav-item"><a class="nav-link text-white"        data-vista="corte"   href="#">Corte</a></li>
+      <li class="nav-item"><a class="nav-link text-white"        data-vista="ajustes" href="#">Ajustes</a></li>
     </ul>
   </div>
 </div>
@@ -57,6 +58,7 @@
       <li class="nav-item"><a class="nav-link text-white"        data-vista="tablero" href="#">Tablero</a></li>
       <li class="nav-item"><a class="nav-link text-white"        data-vista="maquila" href="#">Maquila</a></li>
       <li class="nav-item"><a class="nav-link text-white"        data-vista="corte"   href="#">Corte</a></li>
+      <li class="nav-item"><a class="nav-link text-white"        data-vista="ajustes" href="#">Ajustes</a></li>
     </ul>
     <div class="mt-4 small text-secondary" data-sucursal>Sucursal 1</div>
     <div class="mt-2 small" id="estadoRed"></div>
@@ -486,20 +488,108 @@
         </div>
       </div>
 
-      <div class="card mt-3">
-        <div class="card-body">
-          <label for="nombreSucursal" class="form-label fw-semibold">Nombre de esta tablet</label>
-          <input type="text" id="nombreSucursal" class="form-control" maxlength="30"
-                 placeholder="Sucursal 1" autocomplete="off">
-          <div class="form-text">Sale en el menú y en los documentos que se imprimen.</div>
-        </div>
-      </div>
-
       <div class="d-flex flex-wrap gap-2 mt-3">
         <button class="btn btn-outline-primary" data-vista="nota">&larr; Levantar una nota</button>
         <button class="btn btn-outline-secondary ms-auto" id="btnEjemplos">Cargar notas de ejemplo</button>
         <button class="btn btn-outline-danger" id="btnBorrarTodo">Borrar todo</button>
       </div>
+    </section>
+
+    <!-- ================================================================
+         VISTA 5 — AJUSTES
+         ================================================================ -->
+    <section class="vista d-none" id="vista-ajustes">
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <div class="card h-100"><div class="card-body">
+            <h2 class="h6">Esta tablet</h2>
+            <label for="nombreSucursal" class="form-label mt-2">Nombre</label>
+            <input type="text" id="nombreSucursal" class="form-control" maxlength="30"
+                   placeholder="Sucursal 1" autocomplete="off">
+            <div class="form-text">Sale en el menú y en los papeles que se imprimen.</div>
+
+            <label for="quienAtiende" class="form-label mt-3">Quién atiende</label>
+            <input type="text" id="quienAtiende" class="form-control" maxlength="30"
+                   placeholder="Tu nombre" autocomplete="off">
+            <div class="form-text">Queda en el historial de cada nota que toques.</div>
+          </div></div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+          <div class="card h-100"><div class="card-body">
+            <h2 class="h6">Cobro y tiempos</h2>
+
+            <label for="ajAnticipo" class="form-label mt-2">Anticipo mínimo</label>
+            <div class="input-group">
+              <input type="number" id="ajAnticipo" class="form-control" min="0" max="100" step="5" inputmode="numeric">
+              <span class="input-group-text">%</span>
+            </div>
+            <div class="form-text">Si dejan menos, la nota avisa. No la bloquea.</div>
+
+            <label for="ajHoraSalida" class="form-label mt-3">Hora en que sale el carro</label>
+            <div class="input-group">
+              <input type="number" id="ajHoraSalida" class="form-control" min="0" max="23" step="0.5" inputmode="decimal">
+              <span class="input-group-text">h</span>
+            </div>
+            <div class="form-text">La nota que se levanta después va en el siguiente. El martes es a las 7.</div>
+
+            <div class="row g-3 mt-0">
+              <div class="col-6">
+                <label for="ajDiasSinRecoger" class="form-label">Sin recoger después de</label>
+                <div class="input-group">
+                  <input type="number" id="ajDiasSinRecoger" class="form-control" min="1" step="1" inputmode="numeric">
+                  <span class="input-group-text">días</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <label for="ajDiasSinRespaldo" class="form-label">Avisar del respaldo a los</label>
+                <div class="input-group">
+                  <input type="number" id="ajDiasSinRespaldo" class="form-control" min="1" step="1" inputmode="numeric">
+                  <span class="input-group-text">días</span>
+                </div>
+              </div>
+            </div>
+          </div></div>
+        </div>
+      </div>
+
+      <div class="card mt-3"><div class="card-body">
+        <h2 class="h6">Lavandería por kilo</h2>
+        <div class="row g-3 mt-0">
+          <div class="col-12 col-md-4">
+            <label for="ajPrecioKilo" class="form-label">Se cobra por kilo</label>
+            <div class="input-group"><span class="input-group-text">$</span>
+              <input type="number" id="ajPrecioKilo" class="form-control" min="0" step="1" inputmode="decimal"></div>
+          </div>
+          <div class="col-12 col-md-4">
+            <label for="ajCostoPrimerKilo" class="form-label">La maquila cobra el primer kilo</label>
+            <div class="input-group"><span class="input-group-text">$</span>
+              <input type="number" id="ajCostoPrimerKilo" class="form-control" min="0" step="1" inputmode="decimal"></div>
+          </div>
+          <div class="col-12 col-md-4">
+            <label for="ajCostoPorKilo" class="form-label">Y por cada kilo después</label>
+            <div class="input-group"><span class="input-group-text">$</span>
+              <input type="number" id="ajCostoPorKilo" class="form-control" min="0" step="1" inputmode="decimal"></div>
+          </div>
+        </div>
+      </div></div>
+
+      <div class="card mt-3"><div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <h2 class="h6 mb-0">Precios por pieza</h2>
+          <button class="btn btn-outline-secondary btn-sm" id="btnPreciosOriginales">Volver a los originales</button>
+        </div>
+        <p class="small text-secondary mt-2 mb-2">Un cambio vale para las notas nuevas. Las que ya están guardadas no se tocan.
+          Lo amarillo es lo que cambiaste.</p>
+        <input type="search" id="filtroPrecios" class="form-control mb-2" placeholder="Buscar prenda"
+               aria-label="Buscar prenda" autocomplete="off">
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead><tr><th>Prenda</th><th class="text-end">Maquila</th><th class="text-end">Precio</th><th class="text-end">Queda</th></tr></thead>
+            <tbody id="tablaPrecios"></tbody>
+          </table>
+        </div>
+      </div></div>
     </section>
 
   </main>
