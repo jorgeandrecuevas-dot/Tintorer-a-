@@ -53,10 +53,13 @@ export function irA(nombre) {
     seccion.classList.toggle('d-none', seccion.id !== 'vista-' + nombre);
   });
 
-  // El menú marca dónde estás. Hay dos menús, el fijo y el cajón, así que
-  // se recorren los dos con el mismo selector.
+  // El menú marca dónde estás. Hay tres: el fijo de la computadora, las pestañas de
+  // abajo y el engrane de arriba, así que se recorren con el mismo selector.
   document.querySelectorAll('.nav-link[data-vista]').forEach(function (enlace) {
-    enlace.classList.toggle('active', enlace.dataset.vista === nombre);
+    const activo = enlace.dataset.vista === nombre;
+    enlace.classList.toggle('active', activo);
+    if (activo) enlace.setAttribute('aria-current', 'page');
+    else enlace.removeAttribute('aria-current');
   });
 
   document.getElementById('tituloVista').textContent = TITULOS[nombre];
@@ -65,11 +68,6 @@ export function irA(nombre) {
   // Cada pantalla se vuelve a dibujar al entrar, porque todas leen las
   // mismas notas guardadas y cualquiera pudo haberlas movido.
   if (dibujos[nombre]) dibujos[nombre]();
-
-  // En teléfono el menú es un cajón encima del contenido: hay que cerrarlo
-  const cajon = document.getElementById('menuLateral');
-  const abierto = bootstrap.Offcanvas.getInstance(cajon);
-  if (abierto) abierto.hide();
 
   window.scrollTo(0, 0);
 }

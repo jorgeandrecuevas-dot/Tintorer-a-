@@ -62,6 +62,11 @@ export async function firmar(page, lienzo) {
   await page.mouse.up();
 }
 
+// El campo para pegar la dirección de una foto viene plegado: se abre
+export async function abrirDireccion(page) {
+  await page.evaluate(() => { document.getElementById('detallesUrl').open = true; });
+}
+
 // Levanta una nota completa. Deja la aplicación en el tablero.
 export async function capturarNota(page, { folio, cliente = 'Cliente', telefono = '', prenda = 'camisa', cantidad = 1, observaciones = '', firma = false, fotos = 0 }) {
   await irA(page, 'nota');
@@ -71,6 +76,7 @@ export async function capturarNota(page, { folio, cliente = 'Cliente', telefono 
   if (observaciones) await page.fill('#observaciones', observaciones);
   await agregarPrenda(page, prenda, cantidad);
   for (let i = 0; i < fotos; i++) {
+    await abrirDireccion(page);
     await page.fill('#urlFoto', 'icono.svg');
     await page.click('#btnAgregar');
   }

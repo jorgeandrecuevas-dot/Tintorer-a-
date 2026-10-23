@@ -19,35 +19,39 @@
 </head>
 <body>
 
-<!-- ===== Barra superior: solo en teléfono y tableta ===== -->
+<!-- ===== Barra superior: solo en teléfono y iPad vertical ===== -->
 <nav class="navbar bg-dark border-bottom border-secondary d-lg-none" data-bs-theme="dark">
   <div class="container-fluid">
-    <button class="navbar-toggler" type="button" aria-label="Abrir el menú"
-            data-bs-toggle="offcanvas" data-bs-target="#menuLateral" aria-controls="menuLateral">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <span class="navbar-brand mb-0 ms-2">Tintorería</span>
-    <span class="text-secondary small" data-sucursal>Sucursal 1</span>
+    <span class="navbar-brand mb-0">Tintorería</span>
+    <span class="text-secondary small ms-2 me-auto" data-sucursal>Sucursal 1</span>
+    <a class="nav-link text-white p-2" data-vista="ajustes" href="#" aria-label="Ajustes">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>
+      </svg>
+    </a>
   </div>
 </nav>
 
-<!-- ===== El mismo menú, como cajón deslizable en pantallas chicas ===== -->
-<div class="offcanvas offcanvas-start text-bg-dark" id="menuLateral" tabindex="-1">
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title">Tintorería</h5>
-    <button class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
-  </div>
-  <div class="offcanvas-body">
-    <ul class="nav nav-pills flex-column gap-1">
-      <li class="nav-item"><a class="nav-link text-white active" data-vista="hoy"     href="#">Hoy</a></li>
-      <li class="nav-item"><a class="nav-link text-white"        data-vista="nota"    href="#">Nota nueva</a></li>
-      <li class="nav-item"><a class="nav-link text-white"        data-vista="tablero" href="#">Tablero</a></li>
-      <li class="nav-item"><a class="nav-link text-white"        data-vista="maquila" href="#">Maquila</a></li>
-      <li class="nav-item"><a class="nav-link text-white"        data-vista="corte"   href="#">Corte</a></li>
-      <li class="nav-item"><a class="nav-link text-white"        data-vista="ajustes" href="#">Ajustes</a></li>
-    </ul>
-  </div>
-</div>
+<!-- ===== Las pantallas del día, abajo, a donde llega el pulgar: teléfono y iPad vertical ===== -->
+<nav class="pestanas d-lg-none" aria-label="Pantallas">
+  <a class="nav-link active" data-vista="hoy" href="#">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+    <span>Hoy</span></a>
+  <a class="nav-link" data-vista="nota" href="#">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+    <span>Nota</span></a>
+  <a class="nav-link" data-vista="tablero" href="#">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="10" rx="1"/><rect x="17" y="4" width="4" height="13" rx="1"/></svg>
+    <span>Tablero</span></a>
+  <a class="nav-link" data-vista="maquila" href="#">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="12" height="9" rx="1"/><path d="M14 10h4l3 3v3h-7"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>
+    <span>Maquila</span></a>
+  <a class="nav-link" data-vista="corte" href="#">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v20"/><path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <span>Corte</span></a>
+</nav>
 
 <div class="d-flex">
 
@@ -88,13 +92,23 @@
          ================================================================ -->
     <section class="vista" id="vista-hoy">
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-        <p class="mb-0 fs-5" id="hoyFecha"></p>
-        <button type="button" class="btn btn-primary" id="btnHoyNota">Nota nueva</button>
+        <p class="mb-0 fs-5 d-lg-none" id="hoyFecha"></p>
+        <button type="button" class="btn btn-primary ms-lg-auto" id="btnHoyNota">Nota nueva</button>
       </div>
       <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3" id="hoyTarjetas"></div>
     </section>
 
     <section class="vista d-none" id="vista-nota">
+      <!-- Total, saldo y guardar siempre a la vista, sin subir hasta el resumen
+           después de firmar. En computadora el resumen ya se queda fijo. -->
+      <div class="barra-nota d-lg-none" role="region" aria-label="Total de la nota">
+        <div class="lh-sm">
+          <div class="small text-secondary">Total <span class="fw-semibold text-body" id="barraTotal">$0</span></div>
+          <div class="small text-secondary">Saldo <span class="fw-semibold text-body" id="barraSaldo">$0</span></div>
+        </div>
+        <button type="button" class="btn btn-primary ms-auto" id="btnGuardarBarra">Guardar nota</button>
+      </div>
+
       <div class="row g-3">
 
         <!-- ---------- columna de captura ---------- -->
@@ -189,32 +203,31 @@
 
           <div class="card mb-3">
             <div class="card-body">
-              <div class="fw-semibold mb-1">Fotos de la prenda</div>
-              <p class="form-text mt-0">
-                Se fotografía cómo llegó la prenda. Si después hay un reclamo, existe la prueba.
-              </p>
+              <div class="fw-semibold mb-2">Fotos de la prenda</div>
 
-              <!-- Controles de la galería -->
-              <div class="input-group mb-3">
-                <input id="urlFoto" type="url" class="form-control" aria-label="Dirección de la foto"
-                       placeholder="https://ejemplo.com/mancha.jpg">
-                <button id="btnAgregar" class="btn btn-primary">Agregar foto</button>
-              </div>
-
-              <!-- En el mostrador nadie pega direcciones: se toma la foto.
-                   El campo de arriba se queda porque es el requisito de la
-                   actividad de la escuela. -->
+              <!-- En el mostrador nadie pega direcciones: se toma la foto -->
               <div class="d-grid mb-3">
-                <label for="tomarFoto" class="btn btn-outline-primary mb-0">Tomar foto con la cámara</label>
+                <label for="tomarFoto" class="btn btn-primary mb-0">Tomar foto con la cámara</label>
                 <input id="tomarFoto" class="d-none" type="file"
                        accept="image/*" capture="environment" multiple>
               </div>
+
+              <!-- Controles de la galería de la Actividad 1. Se quedan, plegados:
+                   pedir una dirección de internet no es lo del mostrador -->
+              <details id="detallesUrl" class="mb-3">
+                <summary class="small text-secondary">Agregar una foto por su dirección</summary>
+                <div class="input-group mt-2">
+                  <input id="urlFoto" type="url" class="form-control" aria-label="Dirección de la foto"
+                         placeholder="https://ejemplo.com/mancha.jpg">
+                  <button id="btnAgregar" class="btn btn-primary">Agregar foto</button>
+                </div>
+              </details>
 
               <!-- Contenedor: 2 columnas en teléfono, 3 en tableta, 4 en computadora -->
               <div id="galeria" class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3"></div>
 
               <p id="galeriaVacia" class="text-secondary small mt-3 mb-0">
-                Todavía no hay fotos. Pega la dirección de una imagen y presiona «Agregar foto».
+                Todavía no hay fotos.
               </p>
             </div>
           </div>
@@ -225,7 +238,7 @@
                 <span class="fw-semibold">Firma del cliente</span>
                 <button id="btnLimpiarFirma" class="btn btn-sm btn-outline-secondary">Limpiar</button>
               </div>
-              <p class="form-text mt-0">Firma de recibido. Se guarda en la tablet, no necesita internet.</p>
+              <p class="form-text mt-0">Firma de recibido.</p>
               <canvas id="firma" class="firma border rounded"></canvas>
             </div>
           </div>
@@ -234,7 +247,7 @@
 
         <!-- ---------- resumen y cobro ---------- -->
         <div class="col-12 col-md-6 col-lg-3 order-3 order-md-2 order-lg-3">
-          <div class="card border-primary">
+          <div class="card border-primary resumen-fijo">
             <div class="card-body">
               <div class="fw-semibold mb-2">Resumen</div>
               <div class="text-secondary small mb-1" id="resumenCliente">Sin nombre</div>
@@ -302,8 +315,6 @@
          VISTA 2 — TABLERO
          ================================================================ -->
     <section class="vista d-none" id="vista-tablero">
-      <p class="text-secondary">Cada nota avanza por cinco etapas. El estatus dice
-        dónde está la ropa: en el mostrador, con la maquila o lista para entregar.</p>
 
       <!-- Son 90 notas al mes. Llega el cliente con su ticket y recorrer cinco
            columnas con el dedo tarda más que escribir el número. -->
@@ -355,9 +366,6 @@
          VISTA 3 — MAQUILA
          ================================================================ -->
     <section class="vista d-none" id="vista-maquila">
-      <p class="text-secondary">La ropa sale los martes, jueves y sábados. Se le paga
-        en el momento, antes de que se la lleven. Cada prenda va etiquetada con el
-        número de su nota para que no se pierda.</p>
 
       <div class="row g-3">
         <div class="col-12 col-lg-7">
@@ -394,7 +402,7 @@
             <ul class="list-group list-group-flush" id="listaMaquila"></ul>
             <div class="card-body">
               <button class="btn btn-primary w-100" id="btnRecibir">Recibir de vuelta</button>
-              <div class="form-text">Se cuenta contra lo que se mandó antes de firmar de recibido.</div>
+              <div class="form-text">Se cuenta contra lo que salió.</div>
             </div>
           </div>
         </div>

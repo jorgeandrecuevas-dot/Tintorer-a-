@@ -324,6 +324,8 @@ function dibujarNota() {
   document.getElementById('fechaEntrega').textContent = textoFecha(c.entrega);
   document.getElementById('total').textContent        = pesos(c.precio);
   document.getElementById('saldo').textContent        = pesos(c.saldo);
+  document.getElementById('barraTotal').textContent   = pesos(c.precio);
+  document.getElementById('barraSaldo').textContent   = pesos(c.saldo);
 
   // Si el atajo mandó, se refleja en el campo. Si escribieron, no se toca.
   if (modoCobro !== 'manual') inpRecibido.value = c.pagado;
@@ -476,3 +478,8 @@ function terminarDeGuardar(folio, c, firma, fotosGuardadas) {
     : 'Nota ' + folio + ' guardada, pero sin sus imágenes: la tablet no dejó abrir el almacén.');
   irA('tablero');
 }
+
+// El botón de la barra de abajo es el mismo de guardar: no hay dos caminos
+document.getElementById('btnGuardarBarra').addEventListener('click', function () {
+  document.getElementById('btnGuardar').click();
+});

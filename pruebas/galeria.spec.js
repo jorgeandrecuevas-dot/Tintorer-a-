@@ -1,10 +1,11 @@
 // Actividad 1 de la escuela: galería con campo de URL, botón, rejilla de
 // Bootstrap, addEventListener, createElement y appendChild.
-import { test, expect, abrirLimpia, irA } from './ayuda.js';
+import { test, expect, abrirLimpia, irA, abrirDireccion } from './ayuda.js';
 
 test.beforeEach(async ({ page }) => {
   await abrirLimpia(page);
   await irA(page, 'nota');
+  await abrirDireccion(page);
 });
 
 test('tiene los tres elementos con su identificador y sus clases de Bootstrap', async ({ page }) => {

@@ -50,7 +50,9 @@ export function dibujarHoy() {
 
   [
     { numero: h.porMandar.length, titulo: 'Por mandar a la maquila',
-      detalle: h.textoSalida + '. ' + h.apartadas + ' de ' + h.porMandar.length + ' apartadas, ' + plural(h.prendasPorMandar, 'prenda', 'prendas') + '.',
+      detalle: h.textoSalida + '.' + (h.porMandar.length
+        ? ' ' + h.apartadas + ' de ' + h.porMandar.length + ' apartadas, ' + plural(h.prendasPorMandar, 'prenda', 'prendas') + '.'
+        : ''),
       boton: 'Apartar la ropa', alTocar: function () { irA('maquila'); } },
     { numero: h.llegan.length, titulo: 'Regresan hoy',
       detalle: h.atrasadas.length ? plural(h.atrasadas.length, 'nota atrasada', 'notas atrasadas') + '.' : 'Ninguna va atrasada.',
