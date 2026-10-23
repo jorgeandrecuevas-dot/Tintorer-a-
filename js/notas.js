@@ -1,5 +1,5 @@
-import { avisar } from './avisos.js';
 /* Las notas guardadas: dónde viven, cómo se escriben y las reglas de cada etapa. */
+import { avisar } from './avisos.js';
 import { esImagenAdentro, guardarImagen } from './almacen.js';
 import { ajustes, quienAtiende } from './config.js';
 import { fechaEntrega, textoFecha } from './ciclo.js';
@@ -145,10 +145,29 @@ export function registrarPago(n, monto, tipo) {
   n.saldo = n.total - n.pagado;
 }
 
+/* La forma de las notas lleva número. Cada vez que cambia (pagos, historial,
+   cancelada) sube el ESQUEMA y las notas guardadas con un número menor se
+   arreglan una vez. Si el número guardado es mayor, la tablet tiene datos de
+   una versión más nueva: no se tocan. */
+export const ESQUEMA = 3;
+const LLAVE_ESQUEMA = 'tintoreria.esquema';
+
+function esquemaGuardado() {
+  try {
+    return Number(localStorage.getItem(LLAVE_ESQUEMA)) || 0;
+  } catch (e) {
+    return 0;
+  }
+}
+
 export let NOTAS = leerNotas().map(normalizarNota);
 
 // Si hubo que arreglar notas viejas, se guardan ya arregladas
-if (notasArregladas) escribirNotas(NOTAS);
+const esquemaViejo = esquemaGuardado() < ESQUEMA;
+if (notasArregladas || (esquemaViejo && NOTAS.length > 0)) escribirNotas(NOTAS);
+if (esquemaViejo) {
+  try { localStorage.setItem(LLAVE_ESQUEMA, String(ESQUEMA)); } catch (e) { /* sin almacén */ }
+}
 
 // Desde fuera no se puede asignar a NOTAS: se pide aquí
 export function reemplazarNotas(lista) {

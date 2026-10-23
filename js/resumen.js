@@ -1,7 +1,6 @@
-import { textoFecha } from './ciclo.js';
-
 /* Las cuentas del corte. No toca la pantalla: recibe notas y devuelve números.
    Por eso se puede probar sin abrir el navegador. */
+import { textoFecha } from './ciclo.js';
 
 export const PERIODOS = {
   hoy:    'Hoy',

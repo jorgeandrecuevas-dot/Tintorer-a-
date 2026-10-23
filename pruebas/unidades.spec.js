@@ -1,6 +1,7 @@
-// Las cuentas del corte y la fecha prometida son funciones sin pantalla: se
-// prueban directo, sin abrir el navegador.
+// Las cuentas del corte, la fecha prometida, el aviso, lo que toca hoy y los
+// ajustes son funciones sin pantalla: se prueban directo, sin abrir el navegador.
 import { test, expect } from '@playwright/test';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { limitesDelPeriodo, resumenCorte, textoRango } from '../js/resumen.js';
 import { diasEntre, fechaEntrega, proximaSalidaDesde, textoFecha } from '../js/ciclo.js';
 import { resumenDeHoy } from '../js/agenda.js';
@@ -223,5 +224,49 @@ test.describe('lo que toca hoy', () => {
 
   test('sin notas no hay nada y se sabe', () => {
     expect(resumenDeHoy([], hoy).hayNotas).toBe(false);
+  });
+});
+
+test.describe('el proyecto', () => {
+  test('el service worker guarda todos los módulos, o sin red no abre', () => {
+    const sw = readFileSync('sw.js', 'utf8');
+    const modulos = readdirSync('js').filter((f) => f.endsWith('.js'));
+    expect(modulos.length).toBeGreaterThan(20);
+    for (const modulo of modulos) expect(sw, modulo).toContain(`'./js/${modulo}'`);
+    for (const archivo of ['./', './index.html', './styles.css', './script.js', './manifest.webmanifest', './icono.svg', './icono-180.png']) {
+      expect(sw, archivo).toContain(`'${archivo}'`);
+    }
+  });
+
+  test('cada import apunta a un archivo que existe', () => {
+    const faltan = [];
+    for (const [carpeta, archivos] of [['.', ['script.js']], ['js', readdirSync('js').filter((f) => f.endsWith('.js'))]]) {
+      for (const archivo of archivos) {
+        const texto = readFileSync(`${carpeta}/${archivo}`, 'utf8');
+        for (const m of texto.matchAll(/(?:from|import)\s+['"](\.[^'"]+)['"]/g)) {
+          const ruta = `${carpeta}/${m[1]}`.replace(/^\.\/js\/\.\//, 'js/').replace('js/./', 'js/');
+          if (!existsSync(ruta.replace('./js/', 'js/'))) faltan.push(`${archivo} → ${m[1]}`);
+        }
+      }
+    }
+    expect(faltan).toEqual([]);
+  });
+
+  test('ningún módulo importa a otro en círculo', () => {
+    const grafo = {};
+    for (const archivo of readdirSync('js').filter((f) => f.endsWith('.js'))) {
+      const texto = readFileSync(`js/${archivo}`, 'utf8');
+      grafo[archivo] = [...texto.matchAll(/from\s+'\.\/([^']+)'/g)].map((m) => m[1]);
+    }
+    const enCurso = new Set(), hecho = new Set(), circulos = [];
+    const visitar = (nodo, camino) => {
+      if (hecho.has(nodo)) return;
+      if (enCurso.has(nodo)) { circulos.push([...camino, nodo].join(' → ')); return; }
+      enCurso.add(nodo);
+      (grafo[nodo] || []).forEach((v) => visitar(v, [...camino, nodo]));
+      enCurso.delete(nodo); hecho.add(nodo);
+    };
+    Object.keys(grafo).forEach((n) => visitar(n, []));
+    expect(circulos).toEqual([]);
   });
 });

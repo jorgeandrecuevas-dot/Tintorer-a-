@@ -137,6 +137,9 @@ compra nada que A no haya dado.
 
 ## Revisión del 23 de octubre
 
+**Estado: los tres lotes están hechos.** El detalle va en «Qué quedó» más
+abajo. Los números de esta revisión son de antes de los lotes.
+
 Se revisó el código, se corrió la aplicación con casos raros y se midió. Todo
 se probó en Chrome sin pantalla, con tamaños de iPad. **No se ha probado en
 un iPad de verdad.** Eso es lo primero que falta.
@@ -253,15 +256,46 @@ AirDrop, correo) en un toque.
 7. **Sacar los 3 `confirm()` del navegador** por un cuadro de la propia app.
    Se ven igual en todos los aparatos y se pueden probar.
 
+### Qué quedó
+
+| Propuesta | Estado |
+|---|---|
+| Fallas 1, 2, 3, 6 y 7 | Hecho |
+| Falla 4 (hora de salida) | Hecho, con una suposición: jueves y sábado salen a las 7. Se cambia en Ajustes |
+| Falla 5 y contraste | Hecho |
+| Corte por periodo, utilidad en caja, lista de pagos | Hecho |
+| Cancelar en lugar de borrar, historial | Hecho |
+| Ajustes con precios, anticipo, días | Hecho |
+| Pantalla Hoy, avisos en cola | Hecho |
+| iPad: icono, almacenamiento persistente | Hecho |
+| iPad: dos almacenes (app instalada y Safari) | Se avisa en pantalla y en el README. Falta decirle al personal |
+| Impresión en 80 mm | Falta. Hay que saber qué impresora usan |
+| Respaldo por la hoja de compartir | Falta |
+| Diseño 1 a 4 y 6 | Hecho |
+| Diseño 5, menos texto | Hecho en lo principal: ninguna pantalla abre con párrafo |
+| Código 1 a 7 | Hecho. Hay 28 módulos en `js/`, más de 440 pruebas y CI |
+
+Dos cosas de código que cambian cómo se lee el proyecto:
+
+- La Actividad 1 (galería) pasó de `script.js` a `js/galeria.js`. El campo de
+  la URL quedó plegado en `<details id="detallesUrl">`, con los mismos
+  identificadores.
+- Las notas llevan número de versión (`tintoreria.esquema`) y el respaldo es
+  versión 3. Los respaldos viejos se siguen restaurando.
+
+Lo que **no** se pudo probar: un iPad de verdad. Impresión, cámara,
+almacenamiento de iOS y abrir WhatsApp desde la app instalada están sin
+verificar.
+
 ### En qué orden
 
-**Lote 1, arreglos de una tarde.** Fallas 1, 2, 3, 6 y 7. Contraste. Botones
+**Lote 1, arreglos de una tarde ✓.** Fallas 1, 2, 3, 6 y 7. Contraste. Botones
 táctiles. Icono y etiquetas para iPad. Pedir almacenamiento persistente.
 
-**Lote 2, lo que cambia el uso.** Barra fija de guardar, pestañas abajo,
+**Lote 2, lo que cambia el uso ✓.** Barra fija de guardar, pestañas abajo,
 Corte por periodo con lista de pagos, cancelar en lugar de borrar, Ajustes con
 precios, pantalla Hoy.
 
-**Lote 3, el código.** Módulos, un solo punto de escritura, pruebas en el repo.
+**Lote 3, el código ✓.** Módulos, un solo punto de escritura, pruebas en el repo.
 
 Antes del lote 2 conviene probar en el iPad real y saber qué impresora usan.

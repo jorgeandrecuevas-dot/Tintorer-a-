@@ -110,3 +110,12 @@ test('un respaldo de la versión anterior se restaura con sus pagos arreglados',
   expect(n.pagos).toHaveLength(1);
   expect(n.pagado).toBe(70);
 });
+
+test('la tablet guarda el número de versión de los datos y arregla las notas viejas una vez', async ({ page }) => {
+  await abrirLimpia(page);
+  await sembrar(page, [{ folio: '0900', cliente: 'Vieja', total: 100, pagado: 50, saldo: 50, estatus: 'recibida', creada: '2026-10-01T12:00:00-06:00', prendas: [] }]);
+  expect(await page.evaluate(() => localStorage.getItem('tintoreria.esquema'))).toBe('3');
+  const [n] = await notasGuardadas(page);
+  expect(n.pagos).toHaveLength(1);
+  expect(n.historial.length).toBeGreaterThan(0);
+});

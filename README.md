@@ -1,6 +1,6 @@
-# Sistema de notas — tintorería y lavandería
+# Sistema de notas: tintorería y lavandería
 
-Aplicación para una tintorería que manda la ropa a una maquila y la devuelve
+Aplicación para una tintorería que manda la ropa a una maquila y la recibe
 etiquetada por número de nota. Hoy el negocio trabaja con libreta de papel.
 
 **Ver la aplicación funcionando:** https://jorgeandrecuevas-dot.github.io/Tintorer-a-/
@@ -11,125 +11,126 @@ octubre. Están en [APUNTES.md](APUNTES.md) y mandan sobre el código.
 ## Funciona sin internet
 
 Es lo que pide el punto 20 de los apuntes. Bootstrap vive dentro del
-proyecto y un service worker guarda la aplicación en la tablet, así que
-abre en frío aunque no haya señal desde que se prende. Las notas se guardan
-en el aparato.
+proyecto y un service worker guarda la aplicación en la tablet. Abre en frío
+aunque no haya señal. Las notas se guardan en el aparato.
 
 Para comprobarlo: abre la página una vez, apaga el wifi y vuelve a entrar.
-El menú lateral avisa cuándo está guardada y cuándo estás sin señal.
 
-## Las cuatro pantallas
+**En iPad.** Instálala en la pantalla de inicio (Compartir, «Agregar a
+inicio») y úsala siempre desde ahí. La app instalada y Safari **no comparten
+notas**. La app pide almacenamiento persistente para que iOS no la borre a
+los 7 días. Todavía no se ha probado en un iPad de verdad.
 
-Se navega con el menú. En computadora es una barra lateral fija; abajo de
-992 píxeles se vuelve un cajón que abre el botón de hamburguesa.
+## Las seis pantallas
 
-### 1. Nota nueva
+En computadora hay una barra lateral. En teléfono y iPad vertical (menos de
+992 px) hay pestañas abajo: Hoy, Nota, Tablero, Maquila y Corte. Ajustes
+está en el engrane de arriba.
 
-![Nota nueva](capturas/nota.png)
+### 1. Hoy
+
+![Hoy en teléfono](capturas/hoy-telefono.png)
+
+Lo primero que se ve es lo que toca hacer. Siete tarjetas con su número:
+Por mandar a la maquila, Regresan hoy, Atrasadas en la maquila, Por
+embolsar, Por avisar, Por entregar y Sin recoger. Cada una trae un botón que
+lleva a donde se resuelve. Sin notas, el botón dice «Levantar la primera».
+
+### 2. Nota nueva
+
+![Nota nueva](capturas/nota-telefono.png)
 
 - **El número de nota se escribe a mano.** El negocio ya trae su numeración.
-- **Los clientes que ya vinieron se sugieren.** Escribes dos letras del
-  nombre y sale, con su teléfono. Tocas uno y se llenan los dos campos. La
-  señora que viene cada semana ya no se teclea cada semana.
-- La cantidad va primero y en grande, con botones de más y menos para
-  capturar de pie. Para la maquila pesa más cuántas prendas van que de qué
-  tipo son.
-- **Buscador de prendas con lupa.** Son 56 piezas y bajar una lista así de
-  larga con el cliente enfrente tarda. Se escribe el nombre y sale. No pide
-  acentos: «sabana» encuentra «Sábana».
-- **Observaciones** de cómo llegó la prenda: botón que falta, rotura. Es lo
-  que se reclama después.
-- **Foto con la cámara**, que es como se toma en el mostrador. La foto se
-  achica a 1000 píxeles y se guarda en IndexedDB, no en el almacén chico del
-  navegador. El campo para pegar una dirección sigue ahí: es el requisito de
-  la Actividad 1.
-- **Firma del cliente** en la pantalla. No usa red ni biblioteca, y aguanta
-  que giren la tablet.
-- **El cobro se escribe.** Hay tres atajos (nada, mitad, todo) y abajo el
-  campo del monto. El cliente da lo que trae, no siempre la mitad exacta.
-  Si deja menos del 50% la pantalla lo avisa, y no deja recibir más de lo
-  que vale la nota.
-- La **fecha de entrega se calcula sola** con el ciclo de la maquila.
+  Si se repite, la pantalla avisa.
+- **Los clientes que ya vinieron se sugieren.** Dos letras y sale el nombre
+  con su teléfono.
+- **La cantidad va primero**, con más y menos para capturar de pie.
+- **Buscador de prendas.** Son 56 piezas. No pide acentos.
+- **Lavandería por kilo.** No acepta 0 ni negativos.
+- **Observaciones** de cómo llegó la prenda: botón que falta, rotura.
+- **Cámara primero.** El campo para pegar una dirección de imagen queda
+  plegado abajo, con los mismos identificadores. Es el requisito de la
+  Actividad 1.
+- **Firma del cliente** en la pantalla.
+- **El cobro se escribe.** Tres atajos (nada, mitad, todo) y el monto. Si
+  deja menos del anticipo mínimo avisa. No deja cobrar más de lo que vale.
+- **La barra de abajo** lleva el total, el saldo y «Guardar nota». Siempre a
+  la vista, aunque la nota mida más que la pantalla.
+- La **fecha de entrega se calcula sola**, con la hora a la que sale el carro.
 
-### 2. Tablero
+### 3. Tablero
 
 ![Tablero](capturas/tablero.png)
 
-Cinco etapas: recibida, en maquila, de vuelta, embolsada y entregada. Las
-notas con saldo traen su marca, las observaciones se ven desde aquí, y lo
-que no regresó completo de la maquila sale marcado en rojo.
+Cinco etapas: recibida, en maquila, de vuelta, embolsada y entregada. Lo que
+no regresó completo sale marcado en rojo. Se busca por número, cliente o
+teléfono.
 
-**Lista de entregas.** El botón de arriba cambia las columnas por una lista de
-lo que falta darle a la gente. Primero lo embolsado, y dentro de eso lo que
-más lleva esperando. Cada nota trae su casilla, que se llena cuando la ropa
-sale. Abajo, lo que ya se entregó hoy. Es el punto 11 de los apuntes.
+**Lista de entregas.** Cambia las columnas por lo que falta darle a la gente.
 
-![Lista de entregas](capturas/lista.png)
+![Lista de entregas en iPad](capturas/lista-ipad.png)
 
-**Avisarle al cliente.** La ropa embolsada trae un botón que abre WhatsApp con
-el mensaje escrito: «Hola Marta, tu ropa ya está lista (nota 0501). Pasa por
-ella cuando quieras. Quedan $90 por pagar.» Solo le das enviar. La nota queda
-marcada como avisada. Sin teléfono, el botón dice que falta. La app no manda
-nada sola: el mensaje sale de la cuenta del negocio. Una nota que regresa de
-la maquila trae su botón **Ya está embolsada** para pasar a la siguiente.
+**Avisarles (N).** Con la ropa embolsada, un botón abre WhatsApp con el
+primer mensaje escrito. Al volver ya trae al siguiente. Saltar lo deja sin
+avisar. La app no manda nada sola.
 
-**Se busca por número o por cliente.** Escribes «0502» o «sofia» y sale, sin
-pedir acentos. Con 90 notas al mes recorrer cinco columnas con el dedo tarda
-más que teclear.
+**Toca una nota y se abre.** Se corrige todo, se ve su historial (quién
+cambió qué y cuándo), se reimprime el ticket y se **cancela**.
 
-**Toca una nota y se abre.** Ahí se corrige el número, el cliente, el
-teléfono, las observaciones, la etapa y lo recibido. Se ven sus fotos y sus
-firmas, se reimprime el ticket y se borra la nota. En el mostrador se teclea
-mal y antes no había manera de arreglarlo.
+![Nota abierta](capturas/nota-abierta.png)
 
-### 3. Maquila
+Una nota cancelada no se borra. Guarda su motivo, baja a la caja
+«Canceladas» del tablero y se puede reactivar. Si se devolvió lo cobrado, queda como un pago
+negativo.
+
+### 4. Maquila
 
 ![Maquila](capturas/maquila.png)
 
-Lo que sale, cuántas prendas son y cuánto se le paga en el momento.
+Lo que sale, cuántas prendas son y cuánto se le paga. Dice qué día sale y
+cuántas notas van apartadas. Al recibir de vuelta, cada nota trae su casilla
+con lo que salió para contar lo que regresó. Si no cuadra, queda marcada.
 
-Arriba de la lista dice qué día sale y cuántas notas lleva apartadas: «Sale el
-martes 27 oct · 2 de 4 apartadas». El lunes en la noche él va palomeando lo
-que ya dejó en la bolsa (punto 15). La casilla es para acordarse. No impide
-mandar la ropa.
-
-Al recibir de vuelta, cada nota trae una casilla con lo que salió para
-contar lo que regresó. Si no cuadra, la nota queda marcada. Eso es el
-control del punto 2: que no se pierda ropa en la maquila.
-
-### 4. Corte
+### 5. Corte
 
 ![Corte](capturas/corte.png)
 
-Facturado, cobrado, por cobrar, lo pagado a la maquila y la utilidad. Sale
-de las notas capturadas, no de juntar tickets.
+Facturado, cobrado, por cobrar, lo pagado a la maquila y la utilidad. Se ve
+por **Hoy, Esta semana, Este mes o Todo**. Lo cobrado sale de los pagos con
+fecha, no de un solo número por nota.
 
-**Ropa sin recoger.** Cuando dejan el anticipo y no regresan, la maquila ya se
-pagó y no hay ganancia. Esa es la merma del punto 23. Una nota con 15 días
-embolsada o más cuenta como sin recoger. Corte dice cuántas son, cuánto
-anticipo se quedó, cuánto se le pagó a la maquila por esa ropa y en cuánto
-quedó. El botón **Ver cuáles** las enseña en la lista de entregas. Los 15 días
-son una suposición hasta que el dueño diga cuántos son.
+- **Ropa sin recoger.** La merma del punto 23: se quedó el anticipo y la
+  maquila ya se pagó. Cuenta como sin recoger la nota embolsada hace 15 días
+  o más (se cambia en Ajustes).
+- Una nota cancelada no se factura. Lo ya cobrado y lo ya pagado a la
+  maquila se queda, porque ese dinero ya se movió.
+- **Respaldo.** Aviso arriba si llevan 7 días sin bajarlo.
 
-**Aviso de respaldo.** Si llevan 7 días sin bajarlo, sale un aviso arriba en
-cualquier pantalla con el botón para bajarlo. El primer día con notas no
-avisa.
+### 6. Ajustes
 
-**Nombre de la tablet.** Dice «Sucursal 1» y se cambia ahí mismo. Sale en el
-menú y en los documentos. Cuando abran la segunda, cada tablet lleva su
-nombre.
+![Ajustes](capturas/ajustes.png)
+
+Lo que antes era editar el código:
+
+- Nombre de la sucursal y quién atiende (queda en el historial de cada nota).
+- Anticipo mínimo, hora de salida, días de sin recoger y de respaldo.
+- Lavandería: lo que se cobra por kilo y lo que cobra la maquila.
+- Los precios y costos de las 56 piezas. Lo cambiado se marca y se puede
+  volver a los originales.
+
+Se guarda en la tablet y va dentro del respaldo.
 
 ## Las dos firmas
 
 ![Entregar la ropa](capturas/entrega.png)
 
 El punto 20 pide firmar de recibido y de entregado. La primera se levanta al
-capturar la nota. La segunda, cuando el cliente viene por su ropa: desde el
-tablero se cobra el saldo y firma. Sin firma no deja entregar.
+capturar la nota. La segunda, cuando el cliente viene por su ropa. Sin firma
+no deja entregar.
 
 ## El ciclo de la semana
 
-La ropa sale los martes, jueves y sábados, y vuelve en la salida siguiente:
+La ropa sale los martes, jueves y sábados, y vuelve en la salida siguiente.
 
 | Sale | Vuelve |
 |---|---|
@@ -137,12 +138,11 @@ La ropa sale los martes, jueves y sábados, y vuelve en la salida siguiente:
 | jueves | sábado |
 | sábado | martes |
 
-Los cobertores y edredones tardan más, así que saltan un ciclo. La fecha de
-entrega de cada nota se calcula con esta regla.
+Los cobertores y edredones saltan un ciclo. El martes sale a las 7 am. La
+hora de jueves y sábado es una suposición (7) hasta que el dueño la diga. Se
+cambia en Ajustes.
 
 ## Los cuatro documentos
-
-El mismo pedido contado de varias maneras, que es como lo pidió el negocio:
 
 | Documento | Para quién | Qué lleva |
 |---|---|---|
@@ -153,129 +153,154 @@ El mismo pedido contado de varias maneras, que es como lo pidió el negocio:
 
 ![Etiquetas](capturas/etiquetas.png)
 
-## Cómo se adapta a cada dispositivo
+El ticket mide 10 cm de ancho. Si la impresora es de tickets de 80 mm se
+corta. Falta saber cuál usan.
 
-| Nota nueva en teléfono | Maquila en teléfono |
+## Cómo está armado
+
+Sin herramientas de build. El navegador lee los módulos tal cual
+(`<script type="module" src="script.js">`). `script.js` solo importa los
+demás y abre Hoy.
+
+| Archivo | Qué hace |
 |---|---|
-| <img src="capturas/nota-telefono.png" width="260"> | <img src="capturas/maquila-telefono.png" width="260"> |
+| `js/agenda.js` | Qué toca hoy según el ciclo y las notas. Recibe notas y una fecha, devuelve números y listas. |
+| `js/ajustes.js` | La pantalla de Ajustes. |
+| `js/almacen.js` | Fotos y firmas en IndexedDB. |
+| `js/avisos.js` | El aviso verde de «guardado». |
+| `js/captura.js` | Nota nueva: prendas, cobro, clientes que ya vinieron y guardar. |
+| `js/catalogo.js` | Las 56 piezas con precio y costo de maquila, y la fórmula de lavandería. |
+| `js/ciclo.js` | Cuándo sale la ropa a la maquila y cuándo regresa. |
+| `js/cola.js` | Avisar a varios clientes de corrido por WhatsApp. |
+| `js/config.js` | Lo que se cambia sin tocar el código, y dónde se guarda. |
+| `js/confirmar.js` | El cuadro de «¿seguro?». Reemplaza al `confirm()` del navegador. |
+| `js/corte.js` | Pantalla de Corte: periodo, pagos, sin recoger y canceladas. |
+| `js/documentos.js` | Ticket, nota de maquila, etiquetas y conteo. |
+| `js/dom.js` | `el()`: arma elementos sin escribir HTML a mano. |
+| `js/entrega.js` | Entregar: cobrar el saldo y firmar de entregado. |
+| `js/firmas.js` | Firmas con el dedo, sin red ni bibliotecas. |
+| `js/galeria.js` | **Actividad 1**: la galería de fotografías y la foto con la cámara. |
+| `js/hoy.js` | Pantalla de inicio: qué toca hoy. |
+| `js/maquila.js` | Lo que sale, lo que se paga y el conteo de lo que regresa. |
+| `js/mensajes.js` | A qué número y qué se le dice al cliente. Sin pantalla. |
+| `js/modalNota.js` | Ver y corregir una nota desde el tablero. |
+| `js/navegacion.js` | Las pantallas, el menú y las pestañas de abajo. |
+| `js/notas.js` | Las notas guardadas, sus etapas, pagos, historial y versión de los datos. |
+| `js/respaldo.js` | Bajar y restaurar el respaldo, y el recordatorio. |
+| `js/resumen.js` | Las cuentas del corte. Sin pantalla, se prueba en Node. |
+| `js/sinred.js` | Service worker, almacenamiento persistente y aviso de instalar en iPad. |
+| `js/tablero.js` | Las cinco etapas, la lista de entregas y el buscador. |
+| `js/utilidades.js` | `pesos`, `sinAcentos` y poco más. |
+| `js/whatsapp.js` | Abre WhatsApp con el aviso escrito. |
 
-La galería de fotos pasa de 2 columnas en teléfono a 3 en tableta y 4 en
-computadora. Lo hacen tres clases de Bootstrap,
-`row-cols-2 row-cols-md-3 row-cols-lg-4`, sin una sola regla de CSS propia.
-
-## Archivos
+Fuera de `js/`:
 
 | Archivo | Qué tiene |
 |---|---|
-| `index.html` | Las cuatro pantallas, el cuadro de entrega y el menú |
-| `styles.css` | El menú lateral, las miniaturas, las firmas y las hojas que se imprimen |
-| `script.js` | Navegación, ciclo de la maquila, catálogo, cobro, firmas, conteo, documentos, almacén de imágenes y respaldo |
-| `sw.js` | Guarda la aplicación en la tablet para que abra sin señal |
-| `manifest.webmanifest` | Para instalarla como aplicación en la tablet |
-| `vendor/` | Bootstrap, dentro del proyecto y no desde internet |
+| `index.html` | Las seis pantallas, los cuadros y los menús |
+| `styles.css` | Menú, pestañas, barra de guardar, firmas y hojas que se imprimen |
+| `sw.js` | Guarda la aplicación para que abra sin señal |
+| `manifest.webmanifest` | Para instalarla en la tablet |
+| `vendor/` | Bootstrap, dentro del proyecto |
+| `pruebas/` | Las pruebas |
+| `herramientas/` | Los iconos y las capturas de este README |
 | `APUNTES.md` | Cómo funciona el negocio, en sus palabras |
+| `MEJORAS.md` | Los 23 apuntes uno por uno y lo que sigue |
+
+Si agregas un módulo, ponlo también en la lista de `sw.js`. Una prueba avisa
+si se te olvida.
 
 ## Dónde está cada requisito de la Actividad 1
 
-Todo en la sección «1. GALERÍA DE FOTOGRAFÍAS» de `script.js`.
+Todo en `js/galeria.js`.
 
 | Requisito | Dónde |
 |---|---|
-| Campo de texto para la URL | `index.html` → `id="urlFoto"`, clase `form-control` |
+| Campo de texto para la URL | `index.html` → `id="urlFoto"`, clase `form-control` (dentro de `<details id="detallesUrl">`) |
 | Botón para agregar | `index.html` → `id="btnAgregar"`, clases `btn btn-primary` |
 | Contenedor de la galería | `index.html` → `id="galeria"` |
 | Rejilla responsiva | `row-cols-2 row-cols-md-3 row-cols-lg-4` |
-| `addEventListener` | `script.js` → en el clic de `btnAgregar` |
-| `document.createElement()` | `script.js` → en `agregarFoto`, crea la columna y la imagen |
-| `appendChild()` | `script.js` → mete la imagen en la columna y la columna en la galería |
+| `addEventListener` | `js/galeria.js` → en el clic de `btnAgregar` |
+| `document.createElement()` | `js/galeria.js` → en `agregarFoto`, crea la columna y la imagen |
+| `appendChild()` | `js/galeria.js` → mete la imagen en la columna y la columna en la galería |
 
 Los tres identificadores son únicos.
 
-## Cómo probarlo
+## Las pruebas
 
-Entra a la liga de arriba. También abre con doble clic en `index.html`, pero
-así no queda guardada en el aparato: el service worker necesita que la página
-venga de un servidor.
+```
+npm install
+npx playwright install chromium
+npm run revisar     # ESLint
+npm test            # Playwright
+```
 
-La aplicación abre vacía. En la pantalla de **Corte** hay dos botones para
-probarla: **Cargar notas de ejemplo** mete 4 notas de muestra y **Borrar
-todo** deja la tablet limpia. Las notas que captures se guardan en el navegador y siguen
-ahí al recargar.
+Son más de 440 pruebas. Corren en cuatro tamaños (unidades en Node, teléfono,
+iPad y computadora). Abren la app de verdad, capturan notas, firman, cobran,
+cancelan, y fallan si hay un error en la consola. Las cuentas del corte, el
+ciclo y los ajustes se prueban también sin navegador.
+`.github/workflows/pruebas.yml` las corre en cada subida.
+
+Para volver a sacar las capturas: `node herramientas/capturas.mjs`.
+
+## Cómo probarlo a mano
+
+Entra a la liga de arriba. La aplicación abre vacía. En **Corte** hay dos
+botones: **Cargar notas de ejemplo** mete 4 notas de muestra y **Borrar todo**
+deja la tablet limpia. Las notas se guardan en el navegador y siguen ahí al
+recargar.
 
 ## Sobre los precios
 
-El catálogo son las 56 piezas de la lista que entregó el dueño. El costo de
-cada pieza es lo que la maquila cobra por lavarla.
+El catálogo son las 56 piezas de la lista del dueño. El costo de cada pieza
+es lo que la maquila cobra por lavarla. Todo se cambia en Ajustes.
 
-La lavandería no está como tabla sino como fórmula: los 30 renglones de la
-hoja responden a `precio = 45 × kilos` sin excepción. El costo sí tiene una:
-un kilo cuesta $32 en lugar de $48.
+La lavandería es una fórmula: `precio = 45 × kilos`. La maquila cobra
+$32 si es 1 kilo o menos, y $32 más $16 por cada kilo si es más.
 
-El botón **Ver margen** arranca oculto porque el cliente está viendo la
-pantalla cuando se levanta la nota.
+La sábana de una pieza estaba en $70 y la maquila cobra $100. Quedó en $100
+el 22 de octubre.
 
-La sábana de una pieza estaba en $70 y la maquila cobra $100 por lavarla. Se
-corrigió a $100 el 22 de octubre. Queda sin ganancia en esa pieza: cobra lo
-mismo que cuesta.
-
-El anticipo de 50% tampoco cubre la maquila en 45 de las 56 piezas. En una
-camisa el cliente deja $35 y la maquila cobra $40. En un vestido de novia de
-$1,200 deja $600 y la maquila cobra $800. Si no recogen, esa diferencia se
+El anticipo de 50% no cubre la maquila en 45 de las 56 piezas. En una camisa
+el cliente deja $35 y la maquila cobra $40. Si no recogen, esa diferencia se
 pierde. Está en Pendientes.
 
 ## Dónde vive cada cosa
 
-Las imágenes salieron del almacén chico del navegador. Antes una nota con
-cuatro fotos pesaba 1,032 KB ahí dentro y solo cabían 4 notas. Ahora:
-
 | | Dónde | Cuánto pesa |
 |---|---|---|
-| Los datos de la nota | localStorage | 331 bytes |
-| Las fotos y las firmas | IndexedDB | lo que aguante el disco |
+| Los datos de la nota | localStorage | 330 a 410 bytes |
+| Fotos y firmas | IndexedDB | lo que aguante el disco |
+| Ajustes | localStorage | unos cientos de bytes |
 
-Probadas 4,000 notas sin que truene, contra las 4 de antes. Las notas
-guardadas con la versión anterior se mudan solas la primera vez que abre.
+Probadas 4,000 notas sin problema. Con 1,000 notas guardar tarda 9 ms.
+
+Las notas llevan número de versión (`tintoreria.esquema`). Cuando la forma de
+una nota cambia, las guardadas se arreglan una vez.
 
 ## El respaldo
 
-En **Corte** hay dos botones. **Bajar respaldo** saca un archivo con todas
-las notas y sus imágenes. **Restaurar respaldo** lo vuelve a meter, en esta
-tablet o en otra.
+En **Corte**: **Bajar respaldo** saca un archivo con notas, imágenes y
+ajustes (versión 3). **Restaurar respaldo** lo vuelve a meter, en esta
+tablet o en otra. Los respaldos de versiones anteriores también se restauran.
 
-Es lo único que salva al negocio si la tablet se pierde, se moja o alguien le
-borra los datos del navegador. Hay que bajarlo seguido y guardarlo fuera.
+Es lo único que salva al negocio si la tablet se pierde o se moja. El
+archivo trae nombres, teléfonos y firmas sin cifrar. Guárdalo fuera de la
+tablet.
 
 ## Pendientes
 
-### 1. Sincronizar entre sucursales
+Todos dependen del dueño o de un iPad de verdad. El detalle está en
+[MEJORAS.md](MEJORAS.md).
 
-Hoy es una sola. Cuando abran la segunda, las dos tablets no se hablan. El
-corte no va a cuadrar y hace falta un servidor. El respaldo sirve para pasar
-la libreta de una tablet a otra, no para que trabajen al mismo tiempo.
-
-### 2. La merma del anticipo
-
-Ya se mide. Falta decidir cómo evitarla. Hay dos ideas y las dos son del
-dueño:
-
-- Que el anticipo mínimo sea lo que cuesta la maquila, no el 50% fijo. Hoy
-  no cubre en 45 de 56 piezas.
-- Un cargo por almacenaje que empiece unos días después de la fecha prometida
-  y que salga impreso y firmado en el ticket.
-
-La fecha prometida ya se guarda completa en cada nota nueva, para poder
-contar de ahí.
-
-### 3. Quién paga lo que la maquila pierde o maltrata
-
-Pendiente de preguntar. Cuando se sepa, la nota de maquila y el conteo lo
-llevan.
-
-### 4. El punto 14
-
-A veces la maquila lleva la ropa ya lavada a casa del dueño, y no al local.
-Hoy «De vuelta» no dice dónde está la ropa. Si le importa al dueño, se agrega
-a la nota un dato de dónde llegó.
-
-Lo demás está en [MEJORAS.md](MEJORAS.md): los 23 apuntes uno por uno y los
-tres caminos para seguir.
+1. **Probar en un iPad real:** impresión, cámara, almacenamiento, WhatsApp
+   abierto desde la app instalada.
+2. **Dos sucursales.** Hoy es una. Cuando abran la segunda hace falta un
+   servidor, porque las tablets no se hablan.
+3. **La merma del anticipo.** Ya se mide. Falta decidir si el anticipo
+   mínimo es lo que cuesta la maquila, o si hay cargo por almacenaje.
+4. **Quién paga lo que la maquila pierde o maltrata.**
+5. **Punto 14.** Si el dueño cuenta y embolsa la ropa en su casa o la lleva
+   lista al local.
+6. **Hora de salida** de jueves y sábado, y **días** para dar una nota por
+   sin recoger (hoy 15).

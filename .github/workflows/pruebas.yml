@@ -1,0 +1,29 @@
+name: Pruebas
+
+# Cada vez que se sube algo corren las revisiones y las pruebas, en teléfono,
+# iPad y computadora. Si algo falla, el aviso sale aquí y no el día que lo
+# encuentra alguien en el mostrador.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  probar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run revisar
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: resultados
+          path: test-results/
+          retention-days: 7

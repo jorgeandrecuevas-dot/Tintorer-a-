@@ -23,9 +23,9 @@ export default defineConfig({
   },
   projects: [
     // Las cuentas puras se prueban una sola vez, sin navegador
-    { name: 'unidades',    testMatch: /resumen\.spec/ },
-    { name: 'telefono',    testIgnore: /resumen\.spec/, use: { viewport: { width: 390,  height: 850 },  hasTouch: true } },
-    { name: 'ipad',        testIgnore: /resumen\.spec/, use: { viewport: { width: 820,  height: 1180 }, hasTouch: true } },
-    { name: 'computadora', testIgnore: /resumen\.spec/, use: { viewport: { width: 1440, height: 950 } } },
+    { name: 'unidades',    testMatch: /unidades\.spec/ },
+    { name: 'telefono',    testIgnore: /unidades\.spec/, use: { viewport: { width: 390,  height: 850 },  hasTouch: true } },
+    { name: 'ipad',        testIgnore: /unidades\.spec/, use: { viewport: { width: 820,  height: 1180 }, hasTouch: true } },
+    { name: 'computadora', testIgnore: /unidades\.spec/, use: { viewport: { width: 1440, height: 950 } } },
   ],
 });
