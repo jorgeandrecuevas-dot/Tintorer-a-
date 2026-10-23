@@ -3,7 +3,7 @@ import { textoFecha } from './ciclo.js';
 import { abrirEntrega } from './entrega.js';
 import { abrirNota } from './modalNota.js';
 import { irA, registrarVista } from './navegacion.js';
-import { ETAPAS, NOTAS, diasEmbolsada, escribirNotas, ponerEstatus, sinRecoger, textoHace } from './notas.js';
+import { ETAPAS, NOTAS, diasEmbolsada, guardarNotas, ponerEstatus, sinRecoger, textoHace } from './notas.js';
 import { pesos, sinAcentos } from './utilidades.js';
 import { avisarPorWhatsApp } from './whatsapp.js';
 
@@ -57,7 +57,7 @@ function tarjetaNota(n) {
     embolsar.addEventListener('click', function (evento) {
       evento.stopPropagation();
       ponerEstatus(n, 'lista');
-      escribirNotas(NOTAS);
+      guardarNotas();
       dibujarTablero();
     });
     li.appendChild(embolsar);
@@ -118,7 +118,12 @@ let loQueBusca = '';
 // nadie va a escribir "Díaz" con tilde.
 function notaCoincide(n, texto) {
   if (texto === '') return true;
-  return sinAcentos(n.folio + ' ' + n.cliente).indexOf(texto) !== -1;
+  if (sinAcentos(n.folio + ' ' + n.cliente).indexOf(texto) !== -1) return true;
+
+  // Con tres números o más se busca también en el teléfono, sin importar los
+  // espacios ni los guiones con que lo hayan escrito
+  const digitos = texto.replace(/\D/g, '');
+  return digitos.length >= 3 && (n.telefono || '').replace(/\D/g, '').indexOf(digitos) !== -1;
 }
 
 // "etapas" son las cinco columnas. "lista" es la lista de entregas.

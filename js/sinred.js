@@ -42,3 +42,33 @@ if ('serviceWorker' in navigator) {
 }
 
 marcarEstado();
+
+
+/* -------------------------------------------------------------------------
+   Que la tablet no borre las notas
+
+   Si la app no está instalada, Safari puede borrar los datos de un sitio que
+   lleva 7 días sin abrirse. Y una web app instalada en la pantalla de inicio
+   no comparte nada con la misma página abierta en Safari: son dos almacenes.
+   Se pide almacenamiento persistente y, en iPad, se avisa que hay que
+   instalarla y abrirla siempre desde ahí.
+   ------------------------------------------------------------------------- */
+
+export function esIPad() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+export function estaInstalada() {
+  return window.navigator.standalone === true ||
+         window.matchMedia('(display-mode: standalone)').matches;
+}
+
+if (navigator.storage && navigator.storage.persist) {
+  navigator.storage.persist().catch(function () { /* el navegador decide */ });
+}
+
+const avisoInstalar = document.getElementById('avisoInstalar');
+if (avisoInstalar) {
+  avisoInstalar.classList.toggle('d-none', !(esIPad() && !estaInstalada()));
+}

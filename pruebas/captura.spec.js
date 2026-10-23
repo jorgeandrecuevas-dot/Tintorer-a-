@@ -114,8 +114,12 @@ test.describe('la fecha que se le promete al cliente', () => {
   const casos = [
     ['lunes en la noche sale el martes y regresa el jueves', '2026-10-26T20:00:00', false, 'jue 29 oct'],
     ['el miércoles sale el jueves y regresa el sábado',       '2026-10-28T12:00:00', false, 'sáb 31 oct'],
-    ['el sábado a primera hora regresa el martes',            '2026-10-24T08:00:00', false, 'mar 27 oct'],
+    ['el sábado antes de que salga regresa el martes',        '2026-10-24T06:00:00', false, 'mar 27 oct'],
     ['un cobertor tarda un ciclo más',                        '2026-10-26T20:00:00', true,  'sáb 31 oct'],
+    // el carro sale a las 7 am: lo que llega después ya no alcanza
+    ['el martes a las 6 am todavía alcanza el carro',         '2026-10-27T06:00:00', false, 'jue 29 oct'],
+    ['el martes a las 3 pm el carro ya salió: sale el jueves', '2026-10-27T15:00:00', false, 'sáb 31 oct'],
+    ['el sábado a las 5 pm sale el martes y regresa el jueves', '2026-10-24T17:00:00', false, 'jue 29 oct'],
   ];
   for (const [nombre, momento, cobertor, esperada] of casos) {
     test(nombre, async ({ page }) => {
@@ -126,4 +130,63 @@ test.describe('la fecha que se le promete al cliente', () => {
       await expect(page.locator('#fechaEntrega')).toHaveText(esperada);
     });
   }
+});
+
+test.describe('la lavandería sin kilos no se cobra', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.click('label[for="servLavanderia"]');
+  });
+
+  for (const kilos of ['0', '', '-5']) {
+    test(`con «${kilos}» kg no hay nota`, async ({ page }) => {
+      await page.fill('#kilos', kilos);
+      await expect(page.locator('#total')).toHaveText('$0');
+      await expect(page.locator('#totalPiezas')).toHaveText('0');
+      await page.fill('#folio', 'K1');
+      await page.click('#btnGuardar');
+      await expect(page.locator('#textoAviso')).toHaveText('Faltan los kilos.');
+      expect(await notasGuardadas(page)).toHaveLength(0);
+    });
+  }
+
+  test('con kilos de verdad sí guarda, y la maquila cobra lo suyo', async ({ page }) => {
+    await page.fill('#kilos', '2');
+    await page.fill('#folio', 'K2');
+    await page.click('#btnGuardar');
+    await expect(page.locator('#vista-tablero')).toBeVisible();
+    const [n] = await notasGuardadas(page);
+    expect(n).toMatchObject({ folio: 'K2', piezas: 2, total: 90, costo: 64 });
+  });
+});
+
+test.describe('el número de nota repetido', () => {
+  test('avisa mientras se escribe y no guarda hasta que se toca otra vez', async ({ page }) => {
+    await capturarNota(page, { folio: '0100', cliente: 'Primera' });
+    await irA(page, 'nota');
+
+    await page.fill('#folio', '0100');
+    await expect(page.locator('#avisoFolio')).toHaveText('Ya hay una nota 0100 de Primera.');
+    await page.fill('#folio', '0101');
+    await expect(page.locator('#avisoFolio')).toBeHidden();
+
+    await page.fill('#folio', '0100');
+    await agregarPrenda(page, 'camisa');
+    await page.click('#btnGuardar');
+    await expect(page.locator('#textoAviso')).toHaveText('Ya hay una nota 0100. Si es otra, toca Guardar otra vez.');
+    expect(await notasGuardadas(page)).toHaveLength(1);
+
+    await page.click('#btnGuardar');                          // sí era otra
+    await expect.poll(async () => (await notasGuardadas(page)).length).toBe(2);
+  });
+
+  test('si cambia el número, ya no hace falta confirmar', async ({ page }) => {
+    await capturarNota(page, { folio: '0100', cliente: 'Primera' });
+    await irA(page, 'nota');
+    await page.fill('#folio', '0100');
+    await agregarPrenda(page, 'camisa');
+    await page.click('#btnGuardar');
+    await page.fill('#folio', '0102');
+    await page.click('#btnGuardar');
+    await expect.poll(async () => (await notasGuardadas(page)).length).toBe(2);
+  });
 });

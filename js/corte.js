@@ -2,7 +2,7 @@
 import { vaciarImagenes } from './almacen.js';
 import { avisar } from './avisos.js';
 import { registrarVista } from './navegacion.js';
-import { DIAS_SIN_RECOGER, ETAPAS, NOTAS, escribirNotas, notasDeEjemplo, sinRecoger, reemplazarNotas } from './notas.js';
+import { DIAS_SIN_RECOGER, ETAPAS, NOTAS, guardarNotas, notasDeEjemplo, reemplazarNotas, sinRecoger } from './notas.js';
 import { mostrarLista } from './tablero.js';
 import { pesos } from './utilidades.js';
 
@@ -91,7 +91,7 @@ document.getElementById('btnEjemplos').addEventListener('click', function () {
   if (nuevas.length === 0) { avisar('Los ejemplos ya están cargados.'); return; }
 
   reemplazarNotas(NOTAS.concat(nuevas));
-  escribirNotas(NOTAS);
+  guardarNotas();
   dibujarCorte();
   avisar('Se cargaron ' + nuevas.length + ' notas de ejemplo.');
 });
@@ -106,7 +106,7 @@ document.getElementById('btnBorrarTodo').addEventListener('click', function () {
   if (!seguro) return;
 
   reemplazarNotas([]);
-  escribirNotas(NOTAS);
+  guardarNotas();
   vaciarImagenes();
   dibujarCorte();
   avisar('Listo, la tablet quedó en cero.');

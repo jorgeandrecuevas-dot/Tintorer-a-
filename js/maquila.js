@@ -2,7 +2,7 @@
 import { avisar } from './avisos.js';
 import { registrarVista } from './navegacion.js';
 import { DIAS_LARGOS, proximaSalida, regresoDe, textoFecha } from './ciclo.js';
-import { NOTAS, escribirNotas, ponerEstatus } from './notas.js';
+import { NOTAS, guardarNotas, ponerEstatus } from './notas.js';
 import { pesos } from './utilidades.js';
 
 /* -------------------------------------------------------------------------
@@ -33,19 +33,21 @@ function renglonMaquila(n, conConteo) {
     // él sepa qué ya está en la bolsa y qué falta, no impide mandarla.
     const lado = document.createElement('div');
     lado.className = 'd-flex align-items-center gap-3 min-w-0';
+    // La casilla se rodea de un área de 44 px: el dedo no acierta a una de 22
+    const area = document.createElement('label');
+    area.className = 'area-casilla flex-shrink-0';
     const casilla = document.createElement('input');
     casilla.type = 'checkbox';
-    casilla.className = 'form-check-input flex-shrink-0 m-0 casilla-apartada';
-    casilla.style.width = '1.4rem';
-    casilla.style.height = '1.4rem';
+    casilla.className = 'form-check-input m-0 casilla-apartada';
     casilla.checked = !!n.apartada;
     casilla.setAttribute('aria-label', 'Apartar la nota ' + n.folio);
     casilla.addEventListener('change', function () {
       n.apartada = casilla.checked;
-      escribirNotas(NOTAS);
+      guardarNotas();
       dibujarMaquila();
     });
-    lado.appendChild(casilla);
+    area.appendChild(casilla);
+    lado.appendChild(area);
     lado.appendChild(izq);
     li.appendChild(lado);
   }
@@ -137,7 +139,7 @@ document.getElementById('btnEnviar').addEventListener('click', function () {
   const envio = porEnviar();
   if (envio.length === 0) { avisar('No hay notas para enviar.'); return; }
   envio.forEach(function (n) { ponerEstatus(n, 'maquila'); delete n.apartada; });
-  escribirNotas(NOTAS);
+  if (!guardarNotas()) return;
   dibujarMaquila();
   avisar(envio.length + (envio.length === 1 ? ' nota salió' : ' notas salieron') + ' a la maquila.');
 });
@@ -161,7 +163,7 @@ document.getElementById('btnRecibir').addEventListener('click', function () {
     if (nota.faltan > 0) { faltantes += nota.faltan; notasCortas += 1; }
   });
 
-  escribirNotas(NOTAS);
+  guardarNotas();
   dibujarMaquila();
 
   if (faltantes > 0) {

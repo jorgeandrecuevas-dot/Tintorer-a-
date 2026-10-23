@@ -38,6 +38,19 @@ test.describe('con las notas de ejemplo', () => {
     await expect(page.locator('#columnas .nota-tocable')).toHaveText([/0477 · Sofía Peña/]);
     await page.fill('#buscarNota', 'zzz');
     await expect(page.locator('#sinResultadosNota')).toBeVisible();
+
+    // por teléfono, con tres números o más y sin importar cómo se escribió
+    await page.evaluate(() => {
+      const notas = JSON.parse(localStorage.getItem('tintoreria.notas'));
+      notas[0].telefono = '33 4455-6677';
+      localStorage.setItem('tintoreria.notas', JSON.stringify(notas));
+    });
+    await page.reload();
+    await irA(page, 'tablero');
+    await page.fill('#buscarNota', '4455');
+    await expect(page.locator('#cuentaBusqueda')).toHaveText('1 nota de 4');
+    await page.fill('#buscarNota', '44');
+    await expect(page.locator('#sinResultadosNota')).toBeVisible();      // con dos no busca en teléfonos
     await page.fill('#buscarNota', '');
     await expect(page.locator('#columnas .nota-tocable')).toHaveCount(4);
   });
@@ -148,4 +161,15 @@ test.describe('corregir una nota', () => {
     await expect.poll(async () => (await notasGuardadas(page)).length).toBe(0);
     await expect(page.locator('#tableroVacio')).toBeVisible();
   });
+});
+
+test('si el almacén falla, la pantalla lo dice en vez de fingir que guardó', async ({ page }) => {
+  await abrirLimpia(page);
+  await cargarEjemplos(page);
+  await irA(page, 'tablero');
+  await page.evaluate(() => {
+    Storage.prototype.setItem = () => { throw new DOMException('lleno', 'QuotaExceededError'); };
+  });
+  await fila(page, '0480').getByRole('button', { name: 'Ya está embolsada' }).click();
+  await expect(page.locator('#textoAviso')).toContainText('No se pudo guardar');
 });

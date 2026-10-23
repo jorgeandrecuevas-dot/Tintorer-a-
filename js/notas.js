@@ -1,3 +1,4 @@
+import { avisar } from './avisos.js';
 /* Las notas guardadas: dónde viven, cómo se escriben y las reglas de cada etapa. */
 import { esImagenAdentro, guardarImagen } from './almacen.js';
 import { fechaEntrega, textoFecha } from './ciclo.js';
@@ -38,6 +39,14 @@ export function escribirNotas(notas) {
   }
   avisarCambio();
   return true;
+}
+
+// Lo que usan las pantallas: guarda y, si no se pudo, lo dice. Antes 12 de 14
+// sitios ignoraban el resultado y la pantalla decía "guardada" sin estarlo.
+export function guardarNotas() {
+  if (escribirNotas(NOTAS)) return true;
+  avisar('No se pudo guardar: la tablet no tiene lugar. Baja un respaldo y borra notas viejas.');
+  return false;
 }
 
 // Quien quiera enterarse de que las notas cambiaron se apunta aquí. La pantalla

@@ -91,6 +91,8 @@ export const CATALOGO = [
 /* La lavandería no se guarda como tabla: es una fórmula.
    La saqué de los 30 renglones de la hoja del dueño y no tiene excepciones. */
 export function lavanderia(kg) {
+  // Sin kilos no hay nada que cobrar ni que pagarle a la maquila
+  if (!(kg > 0)) return { precio: 0, costo: 0 };
   return {
     precio: 45 * kg,
     costo:  kg <= 1 ? 32 : 32 + 16 * kg

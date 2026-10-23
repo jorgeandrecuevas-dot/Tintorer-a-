@@ -35,8 +35,21 @@ export function regresoDe(salida) {
   return proximaSalida(d);
 }
 
-export function fechaEntrega(desde, tardaMas) {
-  let regreso = regresoDe(proximaSalida(desde));
+// A qué hora sale el carro a la maquila. Los apuntes dicen martes a las 7 am.
+// Para jueves y sábado no se sabe: se usa la misma hora hasta que el dueño la
+// diga. Se puede cambiar en Ajustes.
+export const HORA_SALIDA = 7;
+
+/* La fecha que se le promete al cliente. Una nota levantada el martes a las
+   3 de la tarde no alcanza el carro de las 7 am: sale el jueves y regresa el
+   sábado. Sin esto se le prometía el jueves, un ciclo antes de lo real. */
+export function fechaEntrega(desde, tardaMas, horaSalida = HORA_SALIDA) {
+  const dia = new Date(desde);
+  const hora = dia.getHours() + dia.getMinutes() / 60;
+  if (DIAS_SALIDA.indexOf(dia.getDay()) !== -1 && hora >= horaSalida) {
+    dia.setDate(dia.getDate() + 1);                 // ya salió: va en la siguiente
+  }
+  let regreso = regresoDe(proximaSalida(dia));
   if (tardaMas) regreso = regresoDe(regreso);
   return regreso;
 }

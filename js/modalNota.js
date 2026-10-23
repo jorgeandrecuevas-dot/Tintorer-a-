@@ -2,7 +2,7 @@
 import { borrarImagenes, leerImagen } from './almacen.js';
 import { avisar } from './avisos.js';
 import { imprimirTicket } from './documentos.js';
-import { ETAPAS, NOTAS, escribirNotas, imagenesDeNota, ponerEstatus, reemplazarNotas } from './notas.js';
+import { ETAPAS, NOTAS, guardarNotas, imagenesDeNota, ponerEstatus, reemplazarNotas } from './notas.js';
 import { pesos } from './utilidades.js';
 import { avisarPorWhatsApp } from './whatsapp.js';
 
@@ -126,7 +126,7 @@ document.getElementById('btnGuardarNota').addEventListener('click', function () 
   notaAbierta.pagado = recibido;
   notaAbierta.saldo = notaAbierta.total - recibido;
 
-  if (!escribirNotas(NOTAS)) { avisar('No se pudo guardar: ya no cabe en la tablet.'); return; }
+  if (!guardarNotas()) return;
 
   bootstrap.Modal.getOrCreateInstance(cuadroNota).hide();
   avisar('Nota ' + notaAbierta.folio + ' corregida.');
@@ -141,7 +141,7 @@ document.getElementById('btnBorrarNota').addEventListener('click', function () {
 
   borrarImagenes(imagenesDeNota(notaAbierta));
   reemplazarNotas(NOTAS.filter(function (n) { return n.id !== notaAbierta.id; }));
-  escribirNotas(NOTAS);
+  guardarNotas();
   bootstrap.Modal.getOrCreateInstance(cuadroNota).hide();
   avisar('Nota borrada.');
   notaAbierta = null;

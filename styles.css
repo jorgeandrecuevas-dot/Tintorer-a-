@@ -272,3 +272,98 @@ body {
 .avisos .toast {
   pointer-events: auto;
 }
+
+/* Contraste. Los colores de Bootstrap sobre el fondo gris de la app daban
+   entre 4.2 y 4.4. El mínimo para texto chico es 4.5. Son colores un poco más
+   oscuros, y el amarillo del "por cobrar" no se leía (1.6). */
+:root {
+  --bs-secondary-rgb: 86, 94, 100;
+  --bs-primary-rgb: 10, 88, 202;
+  --bs-danger-rgb: 176, 42, 55;
+  --bs-success-rgb: 20, 108, 67;
+  --bs-link-color-rgb: 10, 88, 202;
+}
+
+/* El menú es oscuro: ahí el gris tiene que ser claro */
+.barra-lateral,
+.navbar,
+.offcanvas {
+  --bs-secondary-rgb: 173, 181, 189;
+}
+
+/* Solo el texto amarillo. Las etiquetas amarillas con letra negra se quedan */
+.text-warning {
+  --bs-warning-rgb: 138, 90, 0;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: #0a58ca;
+  --bs-btn-border-color: #0a58ca;
+  --bs-btn-hover-bg: #0a58ca;
+  --bs-btn-hover-border-color: #0a58ca;
+  --bs-btn-active-bg: #0a58ca;
+  --bs-btn-active-border-color: #0a58ca;
+}
+.btn-outline-danger {
+  --bs-btn-color: #b02a37;
+  --bs-btn-border-color: #b02a37;
+  --bs-btn-hover-bg: #b02a37;
+  --bs-btn-hover-border-color: #b02a37;
+  --bs-btn-active-bg: #b02a37;
+  --bs-btn-active-border-color: #b02a37;
+}
+.btn-outline-success {
+  --bs-btn-color: #146c43;
+  --bs-btn-border-color: #146c43;
+  --bs-btn-hover-bg: #146c43;
+  --bs-btn-hover-border-color: #146c43;
+  --bs-btn-active-bg: #146c43;
+  --bs-btn-active-border-color: #146c43;
+}
+.btn-outline-secondary {
+  --bs-btn-color: #565e64;
+  --bs-btn-border-color: #565e64;
+  --bs-btn-hover-bg: #565e64;
+  --bs-btn-hover-border-color: #565e64;
+  --bs-btn-active-bg: #565e64;
+  --bs-btn-active-border-color: #565e64;
+}
+
+/* Táctil. Apple pide 44 puntos de alto en lo que se toca con el dedo. Los
+   botones chicos de Bootstrap medían 31, y son justo los del mostrador:
+   Entregar, Avisarle, Ya está embolsada y el conteo de vuelta. */
+@media (max-width: 1199.98px), (pointer: coarse) {
+  .btn,
+  .form-control,
+  .form-select,
+  .input-group-text {
+    min-height: 44px;
+  }
+
+  .btn-sm,
+  .form-control-sm {
+    min-height: 44px;
+    padding: .4rem .9rem;
+    font-size: 1rem;
+  }
+
+  .nav-link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* El área que se toca para apartar una nota */
+.area-casilla {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -8px 0 -8px -8px;
+}
+.area-casilla .form-check-input {
+  width: 1.5rem;
+  height: 1.5rem;
+}

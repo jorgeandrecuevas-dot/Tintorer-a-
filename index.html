@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tintorería · Sistema de notas</title>
 <meta name="theme-color" content="#212529">
+<!-- Para el iPad: sin esto, "Agregar a pantalla de inicio" saca una captura en
+     lugar del icono, y abre dentro de Safari en vez de como aplicación -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tintorería">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="icono-180.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icono.svg" type="image/svg+xml">
 <link href="vendor/bootstrap.min.css" rel="stylesheet">
@@ -82,7 +89,8 @@
             <div class="card-body">
               <label for="folio" class="form-label fw-semibold">Número de nota</label>
               <input type="text" id="folio" class="form-control" placeholder="0482">
-              <div class="form-text">Lo escribe él: el negocio ya trae su propia numeración.</div>
+              <div class="form-text">El número de tu libreta.</div>
+              <div class="form-text text-danger d-none" id="avisoFolio" role="alert"></div>
 
               <label for="nombreCliente" class="form-label fw-semibold mt-3">Cliente</label>
               <input type="text" id="nombreCliente" class="form-control" placeholder="Nombre"
@@ -143,7 +151,7 @@
             <div class="card-body">
               <label for="kilos" class="form-label fw-semibold">Kilogramos</label>
               <div class="input-group input-group-lg">
-                <input type="number" id="kilos" class="form-control" value="3" min="0.5" step="0.5">
+                <input type="number" id="kilos" class="form-control" value="3" min="0" step="0.5" inputmode="decimal">
                 <span class="input-group-text">kg</span>
               </div>
               <div class="form-text">Se cobra $45 por kilo.</div>
@@ -293,7 +301,7 @@
               </svg>
             </span>
             <input type="search" id="buscarNota" class="form-control"
-                   placeholder="Buscar por número o cliente" autocomplete="off"
+                   placeholder="Número, nombre o teléfono" autocomplete="off"
                    aria-label="Buscar una nota" aria-controls="columnas">
           </div>
         </div>
@@ -454,6 +462,10 @@
             Baja un archivo con todas las notas y sus fotos. Guárdalo en otro
             lado. Si la tablet se pierde, con ese archivo vuelve todo.
           </p>
+          <div class="alert alert-info py-2 small d-none" id="avisoInstalar" role="note">
+            Instala la app: toca Compartir y luego Agregar a pantalla de inicio.
+            Ábrela siempre desde ahí. En Safari las notas quedan aparte.
+          </div>
           <div class="d-flex flex-wrap gap-2 align-items-center">
             <button class="btn btn-primary" id="btnRespaldo">Bajar respaldo</button>
             <button class="btn btn-outline-secondary" id="btnRestaurar">Restaurar respaldo</button>

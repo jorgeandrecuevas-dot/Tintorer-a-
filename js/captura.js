@@ -2,7 +2,7 @@
 import { borrarImagenes, guardarImagen } from './almacen.js';
 import { avisar } from './avisos.js';
 import { CATALOGO, CATEGORIAS, lavanderia } from './catalogo.js';
-import { TARDAN_MAS, fechaEntrega, textoFecha } from './ciclo.js';
+import { HORA_SALIDA, TARDAN_MAS, fechaEntrega, textoFecha } from './ciclo.js';
 import { firmaRecibido } from './firmas.js';
 import { fotosDeLaNota, vaciarGaleria } from './galeria.js';
 import { irA } from './navegacion.js';
@@ -269,17 +269,23 @@ inpRecibido.addEventListener('input', function () {
 });
 
 // Lo que la nota vale ahora mismo. Lo usan la pantalla y el guardado.
+// La hora de salida viene de Ajustes cuando exista. Mientras, la de los apuntes.
+function horaDeSalida() {
+  return HORA_SALIDA;
+}
+
 export function cuentaNota() {
   let precio = 0, costo = 0, piezas = 0, tardaMas = false;
   const renglones = [];
 
   if (radioLavan.checked) {
-    const kg = parseFloat(inpKilos.value) || 0;
+    // Un peso negativo o en blanco es cero kilos: no se cobra nada
+    const kg = Math.max(0, parseFloat(inpKilos.value) || 0);
     const cuenta = lavanderia(kg);
     precio = cuenta.precio;
     costo  = cuenta.costo;
-    piezas = Math.max(1, Math.ceil(kg));        // la maquila cuenta bultos
-    renglones.push({ texto: 'Lavandería ' + kg + ' kg', monto: precio });
+    piezas = kg > 0 ? Math.ceil(kg) : 0;        // la maquila cuenta bultos
+    if (kg > 0) renglones.push({ texto: 'Lavandería ' + kg + ' kg', monto: precio });
   } else {
     prendas.forEach(function (p) {
       precio += p.precio * p.cantidad;
@@ -302,7 +308,7 @@ export function cuentaNota() {
 
   return { precio: precio, costo: costo, piezas: piezas, renglones: renglones,
            pagado: pagado, saldo: precio - pagado,
-           entrega: fechaEntrega(new Date(), tardaMas) };
+           entrega: fechaEntrega(new Date(), tardaMas, horaDeSalida()) };
 }
 
 function dibujarNota() {
@@ -344,6 +350,27 @@ dibujarNota();
 // levantarían la nota dos veces.
 let guardando = false;
 
+/* El número de nota lo escribe a mano el dueño. Nada garantiza que no se
+   repita, así que se avisa mientras escribe y al guardar. */
+let folioConfirmado = null;
+const avisoFolio = document.getElementById('avisoFolio');
+
+function notaConFolio(folio) {
+  return NOTAS.find(function (n) { return n.folio === folio; });
+}
+
+function pintarAvisoFolio() {
+  const folio = inpFolio.value.trim();
+  const otra = folio === '' ? null : notaConFolio(folio);
+  avisoFolio.classList.toggle('d-none', !otra);
+  if (otra) avisoFolio.textContent = 'Ya hay una nota ' + folio + ' de ' + otra.cliente + '.';
+}
+
+inpFolio.addEventListener('input', function () {
+  folioConfirmado = null;
+  pintarAvisoFolio();
+});
+
 document.getElementById('btnGuardar').addEventListener('click', function () {
   if (guardando) return;
 
@@ -351,7 +378,20 @@ document.getElementById('btnGuardar').addEventListener('click', function () {
   if (folio === '') { inpFolio.focus(); avisar('Falta el número de nota.'); return; }
 
   const c = cuentaNota();
-  if (c.piezas === 0) { avisar('La nota no tiene prendas.'); return; }
+  if (c.piezas === 0) {
+    avisar(radioLavan.checked ? 'Faltan los kilos.' : 'La nota no tiene prendas.');
+    return;
+  }
+
+  // Un número repetido casi siempre es un error de dedo. Se avisa y se deja
+  // pasar solo si se toca Guardar otra vez, porque a veces sí es otra nota.
+  const repetida = notaConFolio(folio);
+  if (repetida && folioConfirmado !== folio) {
+    folioConfirmado = folio;
+    pintarAvisoFolio();
+    avisar('Ya hay una nota ' + folio + '. Si es otra, toca Guardar otra vez.');
+    return;
+  }
 
   guardando = true;
   const fotos = fotosDeLaNota();
@@ -404,6 +444,8 @@ function terminarDeGuardar(folio, c, firma, fotosGuardadas) {
   // Se limpia para la siguiente
   prendas = [];
   inpFolio.value = '';
+  folioConfirmado = null;
+  pintarAvisoFolio();
   inpCliente.value = '';
   document.getElementById('telCliente').value = '';
   inpObserva.value = '';

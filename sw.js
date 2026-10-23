@@ -40,7 +40,10 @@ const ARCHIVOS = [
   './vendor/bootstrap.min.css',
   './vendor/bootstrap.bundle.min.js',
   './manifest.webmanifest',
-  './icono.svg'
+  './icono.svg',
+  './icono-180.png',
+  './icono-192.png',
+  './icono-512.png'
 ];
 
 self.addEventListener('install', function (evento) {
