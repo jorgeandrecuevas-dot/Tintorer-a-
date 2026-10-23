@@ -94,12 +94,8 @@ de ahí.
 
 ## Lo que mejoraría del código
 
-- `script.js` son 1,554 líneas en un archivo. Todavía se lee, pero ya va
-  para largo. Tocaría partirlo por pantalla.
-- Cada guardada vuelve a escribir todas las notas completas. Con 500 notas
-  y fotos adentro eso tarda en cada captura.
-- «Sucursal 1» está en tres lugares distintos del código.
-- Las pruebas viven fuera del repo. Deberían venir adentro.
+Esto se revisó de nuevo el 23 de octubre. Está al final, en «Revisión del 23
+de octubre», con números medidos.
 
 ## Tres caminos
 
@@ -137,3 +133,134 @@ usuarios por sucursal, precios editables sin tocar código. Es el más caro.
 compra nada que A no haya dado.
 
 **C solo si lo vas a vender a más de un negocio.**
+
+
+## Revisión del 23 de octubre
+
+Se revisó el código, se corrió la aplicación con casos raros y se midió. Todo
+se probó en Chrome sin pantalla, con tamaños de iPad. **No se ha probado en
+un iPad de verdad.** Eso es lo primero que falta.
+
+Se midió esto:
+
+| | |
+|---|---|
+| Líneas | 2,464 de script.js, 614 de index.html, 264 de CSS |
+| Funciones | 77 |
+| Escrituras de notas | 14 sitios, solo 2 revisan si se pudo guardar |
+| Con 1,000 notas | guardar 9 ms, tablero 31 ms, corte 21 ms, una tecla en el buscador 1 ms |
+| Lo que pesa una nota en la tablet | 330 a 410 bytes (las imágenes viven aparte) |
+
+La app aguanta miles de notas sin problema. Lo que dije antes de que cada
+guardada reescribe todo y tardaba **no es cierto** desde que las imágenes se
+fueron a IndexedDB.
+
+### Fallas encontradas
+
+| # | Falla | Qué pasa |
+|---|---|---|
+| 1 | Lavandería con 0 kg | Guarda una nota de $0 con 1 pieza |
+| 2 | Lavandería con -5 kg | Guarda una nota con total -$225 y el Corte baja |
+| 3 | Mismo número de nota dos veces | Lo acepta sin avisar. Quedan dos notas 0100 |
+| 4 | Fecha prometida y hora | Una nota levantada el martes a las 3 pm promete el jueves. El carro salió a las 7 am. Sale el jueves y regresa el sábado: un ciclo de error |
+| 5 | «Por cobrar» en amarillo sobre blanco | Contraste 1.6 a 1. El mínimo es 4.5. Casi no se lee |
+| 6 | Buscar por teléfono | No encuentra nada |
+| 7 | Dos escrituras sin revisar | Si falla el almacén, la pantalla dice que se guardó |
+
+La 4 necesita la hora de salida de cada día. Los apuntes dicen martes a las
+7 am. Faltan jueves y sábado.
+
+### Funcionamiento
+
+**Corte.** Hoy suma todas las notas desde siempre. No hay por día, por semana
+ni por mes. Es el punto 8 de los apuntes y se va a notar a las dos semanas.
+
+- La utilidad es facturado menos maquila. Cuenta como ganancia lo que nadie ha
+  pagado todavía. Hace falta también una utilidad con lo cobrado.
+- Una nota guarda un solo número de «pagado». No guarda cuándo ni cuánto en
+  cada pago. Sin eso no se puede sacar «cobrado hoy». Hace falta una lista de
+  pagos con fecha, monto y si fue anticipo o liquidación.
+
+**Borrar.** Una nota borrada desaparece sin rastro y el Corte cambia solo.
+Mejor una etapa «Cancelada» con motivo, y una bitácora de quién cambió qué.
+
+**Los precios están en el código.** Cambiar un precio o la fórmula de
+lavandería es editar `script.js`. El dueño lo va a pedir. Hace falta una
+pantalla de Ajustes con precios, costos de maquila, anticipo mínimo y los
+días de «sin recoger».
+
+**Una pantalla «Hoy».** El negocio vive por ciclo: lunes en la noche se aparta,
+martes sale, jueves regresa, se embolsa y se avisa. Una pantalla de inicio
+que diga qué toca hoy: «Mañana salen 4 notas», «Hay 6 embolsadas sin avisar».
+
+**Avisar de una vez.** Hoy son 12 toques de «Avisarle» uno por uno. Una cola
+que pase a la siguiente nota después de cada mensaje.
+
+**El iPad.** Tres cosas que importan y no se han probado:
+
+1. Una web app instalada en la pantalla de inicio y la misma página abierta en
+   Safari **no comparten notas**. Cada una tiene su almacén. Hay que escoger
+   una sola y decirle al personal.
+2. Si la app no está instalada, Safari puede borrar los datos de un sitio que
+   lleva 7 días sin abrirse. La app no pide almacenamiento persistente.
+3. No hay `apple-touch-icon`. El icono es un SVG y iOS no lo usa. En la
+   pantalla de inicio saldría una letra o una captura.
+
+**Impresión.** El ticket mide 10 cm de ancho. Si la impresora es de tickets de
+80 mm se corta. Hay que saber cuál es y probarla.
+
+**Respaldo.** El archivo trae nombres, teléfonos y firmas sin cifrar. Y baja a
+la propia tablet. Mejor mandarlo por la hoja de compartir del iPad (iCloud,
+AirDrop, correo) en un toque.
+
+### Diseño
+
+1. **Barra fija abajo con total, saldo y «Guardar nota».** En iPad vertical
+   la nota mide 3,500 px de alto, unas 3 pantallas. La firma queda abajo y el
+   botón de guardar arriba. Se firma y hay que subir para guardar.
+2. **Menú de pestañas abajo** en iPad vertical y teléfono, en vez de la
+   hamburguesa. Son 4 destinos y se usan todo el día.
+3. **Botones más grandes.** Los de las acciones del mostrador (Entregar,
+   Avisarle, Ya está embolsada, el conteo de vuelta) miden 31 px. Apple pide
+   44. Se arregla con una regla de CSS para pantallas táctiles.
+4. **Cámara primero.** El campo para pegar la dirección de una imagen es el
+   requisito de la Actividad 1, no algo que use el mostrador. Va debajo del
+   botón de cámara y plegado, con los mismos identificadores.
+5. **Menos texto.** Cada pantalla abre con un párrafo de 22 a 35 palabras que
+   se lee una vez. Los textos de ayuda hablan como desarrollador: «Lo escribe
+   él: el negocio ya trae su propia numeración». Mejor una línea o nada.
+6. **Contraste.** El gris de apoyo da 4.41 y el azul de los botones 4.24. Un
+   poco debajo del 4.5. Se corrige con dos variables.
+
+### Código
+
+1. **Partir `script.js` en módulos** por pantalla: almacén, notas, tablero,
+   maquila, corte, documentos, respaldo. Sin herramientas nuevas: el navegador
+   ya lee módulos. Hay que actualizar la lista del service worker.
+2. **Un solo punto de escritura.** Un objeto `Notas` con `guardar`, `buscar` y
+   `cambiarEtapa`. Hoy hay 14 sitios que escriben y 12 no revisan el resultado.
+3. **Un ayudante para armar elementos.** Hay 104 `createElement` con el mismo
+   molde. Una función de una línea lo recorta.
+4. **Las pruebas dentro del repo.** Las 14 que se corrieron a mano viven fuera
+   del proyecto. Quien lo reciba no las tiene. Se pasan a Playwright y corren
+   solas en cada subida.
+5. **Número de versión de los datos.** Ya hubo una migración (imágenes a
+   IndexedDB) y se resolvió mirando si el texto empezaba con `data:`. La
+   siguiente va a necesitar un número de esquema.
+6. **Un archivo de configuración** para lo que hoy está regado: días de sin
+   recoger (15), días de respaldo (7), anticipo, catálogo.
+7. **Sacar los 3 `confirm()` del navegador** por un cuadro de la propia app.
+   Se ven igual en todos los aparatos y se pueden probar.
+
+### En qué orden
+
+**Lote 1, arreglos de una tarde.** Fallas 1, 2, 3, 6 y 7. Contraste. Botones
+táctiles. Icono y etiquetas para iPad. Pedir almacenamiento persistente.
+
+**Lote 2, lo que cambia el uso.** Barra fija de guardar, pestañas abajo,
+Corte por periodo con lista de pagos, cancelar en lugar de borrar, Ajustes con
+precios, pantalla Hoy.
+
+**Lote 3, el código.** Módulos, un solo punto de escritura, pruebas en el repo.
+
+Antes del lote 2 conviene probar en el iPad real y saber qué impresora usan.
